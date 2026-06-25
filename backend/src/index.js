@@ -47,6 +47,7 @@ app.use('/api/matches',      require('./routes/matches'));
 app.use('/api/leaderboard',  require('./routes/leaderboard'));
 app.use('/api/stats',        require('./routes/stats'));
 app.use('/api/bot-predictions', require('./routes/botpredictions'));
+app.use('/api/home-stats',     require('./routes/homestats'));
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Serveur démarré sur http://localhost:${PORT}`));

@@ -11,6 +11,13 @@ const t = {
 
     // Home
     'home.subtitle':             'Coupe du Monde 2026 — Faites vos pronostics et affrontez vos amis !',
+    'home.kpi.remaining':        'Matchs restants',
+    'home.kpi.top_pts':          'Points du leader',
+    'home.kpi.ai_winner':        'Favori IA',
+    'home.kpi.loading':          '—',
+    'home.leaderboard.title':    'Classement en direct',
+    'home.leaderboard.pts':      'pts',
+    'home.leaderboard.empty':    'Aucun pronostic pour le moment.',
     'home.cta.register':         'Créer un compte',
     'home.cta.login':            'Se connecter',
     'home.stats.teams':          'Équipes',
@@ -143,6 +150,13 @@ const t = {
     'nav.register':    'Sign up',
 
     'home.subtitle':             'World Cup 2026 — Make your predictions and compete with friends!',
+    'home.kpi.remaining':        'Matches left',
+    'home.kpi.top_pts':          'Leader\'s points',
+    'home.kpi.ai_winner':        'AI Favourite',
+    'home.kpi.loading':          '—',
+    'home.leaderboard.title':    'Live leaderboard',
+    'home.leaderboard.pts':      'pts',
+    'home.leaderboard.empty':    'No predictions yet.',
     'home.cta.register':         'Create account',
     'home.cta.login':            'Log in',
     'home.stats.teams':          'Teams',

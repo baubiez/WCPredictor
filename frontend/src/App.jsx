@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
+import { API } from './config.js';
 import { LanguageProvider, useLang } from './LanguageContext.jsx';
 import Login from './components/Login';
 import Register from './components/Register';
@@ -11,56 +12,156 @@ import Stats from './pages/Stats';
 import Admin from './pages/Admin';
 
 /* ── Home ── */
+const MEDAL = { 1: '🥇', 2: '🥈', 3: '🥉' };
+
 function Home() {
   const { t } = useLang();
   const isLoggedIn = !!localStorage.getItem('user');
+  const [stats, setStats]  = useState(null);
+  const [leaderboard, setLB] = useState([]);
+
+  useEffect(() => {
+    if (isLoggedIn) return;
+    fetch(`${API}/api/home-stats`)
+      .then((r) => r.json())
+      .then(setStats)
+      .catch(() => {});
+
+    fetch(`${API}/api/leaderboard`)
+      .then((r) => r.json())
+      .then((d) => setLB((d.leaderboard || []).slice(0, 5)))
+      .catch(() => {});
+  }, [isLoggedIn]);
+
   if (isLoggedIn) return <Navigate to="/matches" replace />;
 
+  const kpis = [
+    {
+      value: stats ? stats.remaining_matches : null,
+      label: t('home.kpi.remaining'),
+      icon: '📅',
+      color: 'var(--accent)',
+    },
+    {
+      value: stats?.top_player ? stats.top_player.total_points : null,
+      label: t('home.kpi.top_pts'),
+      sub: stats?.top_player?.username,
+      icon: '🏆',
+      color: '#F5B705',
+    },
+    {
+      value: stats?.ai_winner ? stats.ai_winner.code : null,
+      label: t('home.kpi.ai_winner'),
+      sub: stats?.ai_winner?.name,
+      icon: '🤖',
+      color: '#a78bfa',
+    },
+  ];
+
   return (
-    <div className="max-w-3xl mx-auto mt-16 text-center px-4">
-      <div className="mb-8">
-        <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl mb-5"
+    <div className="max-w-5xl mx-auto mt-10 px-4">
+      {/* Hero */}
+      <div className="text-center mb-10">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4"
           style={{ background: 'var(--accent-glow)', border: '2px solid var(--accent)' }}>
-          <span className="text-4xl">⚽</span>
+          <span className="text-3xl">⚽</span>
         </div>
-        <h1 className="text-5xl font-black mt-2 tracking-tight" style={{ color: 'var(--text)' }}>
+        <h1 className="text-5xl font-black tracking-tight" style={{ color: 'var(--text)' }}>
           WC<span style={{ color: 'var(--accent)' }}>Predictor</span>
         </h1>
-        <p style={{ color: 'var(--text-muted)' }} className="mt-3 text-lg">
+        <p style={{ color: 'var(--text-muted)' }} className="mt-3 text-lg max-w-xl mx-auto">
           {t('home.subtitle')}
         </p>
+        <div className="flex gap-3 justify-center flex-wrap mt-6">
+          <Link to="/register" className="btn btn-primary text-base px-8 py-3">{t('home.cta.register')}</Link>
+          <Link to="/login"    className="btn btn-ghost  text-base px-8 py-3">{t('home.cta.login')}</Link>
+        </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-4 my-10">
-        {[
-          { n: '48',  k: 'home.stats.teams' },
-          { n: '104', k: 'home.stats.matches' },
-          { n: '3',   k: 'home.stats.pts' },
-        ].map((s) => (
-          <div key={s.n} className="card p-5">
-            <p className="text-3xl font-black" style={{ color: 'var(--accent)' }}>{s.n}</p>
-            <p style={{ color: 'var(--text-muted)' }} className="text-sm mt-1">{t(s.k)}</p>
+      {/* KPIs dynamiques */}
+      <div className="grid grid-cols-3 gap-4 mb-8">
+        {kpis.map((k) => (
+          <div key={k.label} className="card p-5 text-center">
+            <div className="text-2xl mb-1">{k.icon}</div>
+            <p className="text-3xl font-black" style={{ color: k.color }}>
+              {k.value != null ? k.value : <span style={{ color: 'var(--border)' }}>—</span>}
+            </p>
+            {k.sub && (
+              <p className="text-xs mt-0.5 truncate" style={{ color: 'var(--text-muted)' }}>{k.sub}</p>
+            )}
+            <p className="text-xs mt-1 font-semibold" style={{ color: 'var(--text-muted)' }}>{k.label}</p>
           </div>
         ))}
       </div>
 
-      <div className="flex gap-3 justify-center flex-wrap">
-        <Link to="/register" className="btn btn-primary text-base px-8 py-3">{t('home.cta.register')}</Link>
-        <Link to="/login"    className="btn btn-ghost  text-base px-8 py-3">{t('home.cta.login')}</Link>
-      </div>
+      {/* Layout 2 colonnes : Leaderboard + Règles */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
 
-      <div className="mt-14 grid grid-cols-1 sm:grid-cols-3 gap-4 text-left">
-        {[
-          { pk: 'home.rules.exact.pts',   lk: 'home.rules.exact.label',   dk: 'home.rules.exact.desc',   color: 'var(--accent)' },
-          { pk: 'home.rules.correct.pts', lk: 'home.rules.correct.label', dk: 'home.rules.correct.desc', color: '#22c55e' },
-          { pk: 'home.rules.wrong.pts',   lk: 'home.rules.wrong.label',   dk: 'home.rules.wrong.desc',   color: '#ef4444' },
-        ].map((r) => (
-          <div key={r.pk} className="card p-5">
-            <p className="text-2xl font-black" style={{ color: r.color }}>{t(r.pk)}</p>
-            <p className="font-semibold mt-1" style={{ color: 'var(--text)' }}>{t(r.lk)}</p>
-            <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>{t(r.dk)}</p>
+        {/* Leaderboard public */}
+        <div className="card overflow-hidden">
+          <div className="px-5 py-3 border-b flex items-center gap-2"
+            style={{ borderColor: 'var(--border)', background: 'var(--bg-input)' }}>
+            <span className="text-base">🏅</span>
+            <h3 className="font-black text-sm" style={{ color: 'var(--text)' }}>
+              {t('home.leaderboard.title')}
+            </h3>
           </div>
-        ))}
+
+          {leaderboard.length === 0 ? (
+            <p className="text-center py-8 text-sm" style={{ color: 'var(--text-muted)' }}>
+              {t('home.leaderboard.empty')}
+            </p>
+          ) : (
+            <div>
+              {leaderboard.map((row, i) => {
+                const rank = i + 1;
+                return (
+                  <div key={row.user_id}
+                    className="flex items-center gap-3 px-5 py-3 border-b transition-colors"
+                    style={{ borderColor: 'var(--border)' }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-input)'}
+                    onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}>
+                    <span className="w-7 text-center text-base shrink-0">
+                      {MEDAL[rank] || <span className="text-sm font-bold" style={{ color: 'var(--text-muted)' }}>{rank}</span>}
+                    </span>
+                    <span className="flex-1 font-semibold text-sm truncate" style={{ color: 'var(--text)' }}>
+                      {row.username}
+                    </span>
+                    <span className="font-black text-base shrink-0" style={{ color: 'var(--accent)' }}>
+                      {row.total_points}
+                      <span className="font-normal text-xs ml-0.5" style={{ color: 'var(--text-muted)' }}>
+                        {' '}{t('home.leaderboard.pts')}
+                      </span>
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          <div className="px-5 py-3 text-center">
+            <Link to="/login" className="text-xs font-semibold hover:underline" style={{ color: 'var(--accent)' }}>
+              {t('home.cta.login')} →
+            </Link>
+          </div>
+        </div>
+
+        {/* Règles */}
+        <div className="space-y-3">
+          {[
+            { pk: 'home.rules.exact.pts',   lk: 'home.rules.exact.label',   dk: 'home.rules.exact.desc',   color: 'var(--accent)' },
+            { pk: 'home.rules.correct.pts', lk: 'home.rules.correct.label', dk: 'home.rules.correct.desc', color: '#22c55e' },
+            { pk: 'home.rules.wrong.pts',   lk: 'home.rules.wrong.label',   dk: 'home.rules.wrong.desc',   color: '#ef4444' },
+          ].map((r) => (
+            <div key={r.pk} className="card p-4 flex items-center gap-4">
+              <p className="text-2xl font-black w-14 shrink-0 text-center" style={{ color: r.color }}>{t(r.pk)}</p>
+              <div>
+                <p className="font-bold text-sm" style={{ color: 'var(--text)' }}>{t(r.lk)}</p>
+                <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>{t(r.dk)}</p>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
