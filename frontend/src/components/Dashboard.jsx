@@ -1,12 +1,23 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-
 import { API, authFetch } from '../config.js';
+
+const badgeClass = (pts) => {
+  if (pts === 3) return 'badge-exact';
+  if (pts === 1) return 'badge-correct';
+  if (pts === 0) return 'badge-wrong';
+  return 'badge-pending';
+};
+
+const badgeLabel = (p) => {
+  if (p.points_awarded != null) return `${p.points_awarded} pt${p.points_awarded !== 1 ? 's' : ''}`;
+  if (p.status === 'scheduled') return 'À venir';
+  return '–';
+};
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const userString = localStorage.getItem('user');
-  const user = userString ? JSON.parse(userString) : { username: 'Joueur' };
+  const user = (() => { try { return JSON.parse(localStorage.getItem('user')); } catch { return { username: 'Joueur' }; } })();
 
   const [predictions, setPredictions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -14,7 +25,7 @@ export default function Dashboard() {
   useEffect(() => {
     authFetch(`${API}/api/predictions`)
       .then((r) => r.json())
-      .then((data) => setPredictions(data.predictions || []))
+      .then((d) => setPredictions(d.predictions || []))
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
@@ -26,112 +37,100 @@ export default function Dashboard() {
     window.location.reload();
   };
 
-  const totalPoints = predictions.reduce((sum, p) => sum + (p.points_awarded ?? 0), 0);
-  const exact = predictions.filter((p) => p.points_awarded === 3).length;
+  const totalPoints = predictions.reduce((s, p) => s + (p.points_awarded ?? 0), 0);
+  const exact   = predictions.filter((p) => p.points_awarded === 3).length;
   const partial = predictions.filter((p) => p.points_awarded === 1).length;
 
-  const pointsBadge = (pts) => {
-    if (pts === 3) return 'bg-yellow-600 text-yellow-100';
-    if (pts === 1) return 'bg-green-700 text-green-100';
-    if (pts === 0) return 'bg-red-800 text-red-200';
-    return 'bg-slate-600 text-slate-400';
-  };
-
   return (
-    <div className="max-w-4xl mx-auto mt-10 p-6 bg-slate-800 rounded-lg shadow-xl text-white">
-      {/* En-tête */}
-      <div className="flex justify-between items-center mb-8 border-b border-slate-700 pb-4">
+    <div className="max-w-4xl mx-auto">
+      {/* Header */}
+      <div className="card p-6 mb-6 flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-bold">Tableau de Bord</h2>
-          <p className="text-slate-400 mt-1">
-            Bienvenue, <span className="text-blue-400 font-bold">{user.username}</span> !
+          <h2 className="text-2xl font-black" style={{ color: 'var(--text)' }}>Tableau de bord</h2>
+          <p className="mt-0.5 text-sm" style={{ color: 'var(--text-muted)' }}>
+            Connecté en tant que <span style={{ color: 'var(--accent)' }} className="font-bold">{user.username}</span>
           </p>
         </div>
-        <button
-          onClick={handleLogout}
-          className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded text-sm font-bold transition"
-        >
-          Se déconnecter
-        </button>
-      </div>
-
-      {/* Statistiques récapitulatives */}
-      <div className="grid grid-cols-3 gap-4 mb-8">
-        <div className="bg-slate-700 rounded-lg p-4 text-center">
-          <p className="text-3xl font-bold text-blue-400">{totalPoints}</p>
-          <p className="text-slate-400 text-sm mt-1">Points totaux</p>
-        </div>
-        <div className="bg-slate-700 rounded-lg p-4 text-center">
-          <p className="text-3xl font-bold text-yellow-400">{exact}</p>
-          <p className="text-slate-400 text-sm mt-1">Scores exacts</p>
-        </div>
-        <div className="bg-slate-700 rounded-lg p-4 text-center">
-          <p className="text-3xl font-bold text-green-400">{partial}</p>
-          <p className="text-slate-400 text-sm mt-1">Bons résultats</p>
-        </div>
-      </div>
-
-      {/* Liste des pronostics */}
-      <div>
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-semibold">Mes pronostics</h3>
+        <div className="flex gap-3">
           <Link
             to="/matches"
             state={{ statusFilter: 'scheduled' }}
-            className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded text-sm font-bold transition"
+            className="btn btn-primary text-sm px-4 py-2"
           >
-            + Ajouter des pronostics
+            + Pronostiquer
           </Link>
+          <button onClick={handleLogout} className="btn btn-danger">
+            Déconnexion
+          </button>
         </div>
+      </div>
 
-        {loading ? (
-          <p className="text-slate-400 text-center py-8">Chargement…</p>
-        ) : predictions.length === 0 ? (
-          <div className="bg-slate-700 p-6 rounded text-center">
-            <p className="text-slate-300">Vous n'avez encore fait aucun pronostic.</p>
+      {/* Résumé */}
+      <div className="grid grid-cols-3 gap-4 mb-6">
+        {[
+          { val: totalPoints, label: 'Points totaux',  color: 'var(--accent)' },
+          { val: exact,       label: 'Scores exacts',  color: '#F5B705' },
+          { val: partial,     label: 'Bons résultats', color: '#22c55e' },
+        ].map((s) => (
+          <div key={s.label} className="card p-5 text-center">
+            <p className="text-4xl font-black" style={{ color: s.color }}>{s.val}</p>
+            <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>{s.label}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Pronostics */}
+      <div className="card p-6">
+        <h3 className="text-lg font-bold mb-4" style={{ color: 'var(--text)' }}>Mes pronostics</h3>
+
+        {loading && (
+          <p className="text-center py-10" style={{ color: 'var(--text-muted)' }}>Chargement…</p>
+        )}
+
+        {!loading && predictions.length === 0 && (
+          <div className="text-center py-10">
+            <p style={{ color: 'var(--text-muted)' }}>Aucun pronostic enregistré pour l'instant.</p>
             <Link
               to="/matches"
               state={{ statusFilter: 'scheduled' }}
-              className="inline-block mt-4 bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded font-bold transition"
+              className="btn btn-primary inline-flex mt-5 px-6 py-2"
             >
               Pronostiquer maintenant
             </Link>
           </div>
-        ) : (
+        )}
+
+        {!loading && predictions.length > 0 && (
           <div className="space-y-2">
             {predictions.map((p) => (
               <div
                 key={p.id}
-                className="bg-slate-700 rounded px-4 py-3 flex items-center gap-4"
+                className="flex flex-wrap sm:flex-nowrap items-center gap-3 px-4 py-3 rounded-xl transition-all duration-150"
+                style={{
+                  background: 'var(--bg-input)',
+                  border: '1px solid var(--border)',
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--accent)'}
+                onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--border)'}
               >
-                {/* Équipes */}
-                <div className="flex-1 flex items-center gap-3 min-w-0">
-                  <span className="font-medium text-white truncate">{p.home_team}</span>
-                  <span className="text-slate-400 text-sm shrink-0">vs</span>
-                  <span className="font-medium text-white truncate">{p.away_team}</span>
+                <div className="flex-1 flex items-center gap-2 min-w-0 text-sm">
+                  <span className="font-semibold truncate" style={{ color: 'var(--text)' }}>{p.home_team}</span>
+                  <span style={{ color: 'var(--text-muted)' }}>vs</span>
+                  <span className="font-semibold truncate" style={{ color: 'var(--text)' }}>{p.away_team}</span>
                 </div>
 
-                {/* Pronostic */}
-                <span className="text-sm text-slate-300 shrink-0">
-                  Pronostic : <span className="font-bold text-white">{p.pred_home}–{p.pred_away}</span>
+                <span className="text-sm shrink-0" style={{ color: 'var(--text-muted)' }}>
+                  Pronostic : <strong style={{ color: 'var(--accent)' }}>{p.pred_home}–{p.pred_away}</strong>
                 </span>
 
-                {/* Résultat officiel (si terminé) */}
                 {p.status === 'finished' && (
-                  <span className="text-sm text-slate-400 shrink-0">
-                    Résultat : <span className="font-bold text-white">{p.home_score}–{p.away_score}</span>
+                  <span className="text-sm shrink-0" style={{ color: 'var(--text-muted)' }}>
+                    Résultat : <strong style={{ color: 'var(--text)' }}>{p.home_score}–{p.away_score}</strong>
                   </span>
                 )}
 
-                {/* Points */}
-                <span
-                  className={`text-xs font-bold px-2 py-1 rounded shrink-0 ${pointsBadge(p.points_awarded)}`}
-                >
-                  {p.points_awarded != null
-                    ? `${p.points_awarded} pt${p.points_awarded !== 1 ? 's' : ''}`
-                    : p.status === 'scheduled'
-                    ? 'À jouer'
-                    : '–'}
+                <span className={`text-xs font-bold px-2.5 py-1 rounded-full shrink-0 ${badgeClass(p.points_awarded)}`}>
+                  {badgeLabel(p)}
                 </span>
               </div>
             ))}

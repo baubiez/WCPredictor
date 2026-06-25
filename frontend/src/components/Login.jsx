@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { API, authFetch } from '../config.js';
 
 export default function Login() {
@@ -10,19 +10,14 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage({ text: '', isError: false });
-
     try {
       const response = await authFetch(`${API}/api/auth/login`, {
         method: 'POST',
         body: JSON.stringify(formData),
       });
-
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Identifiants incorrects.');
-
-      // Stocke uniquement les infos d'affichage (pas le token — il est dans le cookie httpOnly)
       localStorage.setItem('user', JSON.stringify(data.user));
-
       navigate('/matches');
       window.location.reload();
     } catch (err) {
@@ -31,40 +26,58 @@ export default function Login() {
   };
 
   return (
-    <div className="max-w-md mx-auto mt-10 p-6 bg-slate-800 rounded-lg shadow-xl text-white">
-      <h2 className="text-2xl font-bold mb-6 text-center">Se connecter</h2>
+    <div className="max-w-md mx-auto mt-12">
+      <div className="card p-8">
+        <div className="text-center mb-8">
+          <h2 className="text-2xl font-black" style={{ color: 'var(--text)' }}>Se connecter</h2>
+          <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
+            Pas encore de compte ?{' '}
+            <Link to="/register" style={{ color: 'var(--accent)' }} className="font-semibold hover:underline">
+              S'inscrire
+            </Link>
+          </p>
+        </div>
 
-      {message.text && (
-        <div className={`p-3 rounded mb-4 text-sm ${message.isError ? 'bg-red-600' : 'bg-green-600'}`}>
-          {message.text}
-        </div>
-      )}
+        {message.text && (
+          <div className={`px-4 py-3 rounded-lg text-sm mb-6 font-medium ${
+            message.isError
+              ? 'bg-red-500/15 border border-red-500/40 text-red-400'
+              : 'bg-green-500/15 border border-green-500/40 text-green-400'
+          }`}>
+            {message.text}
+          </div>
+        )}
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium mb-1">Adresse Email</label>
-          <input
-            type="email"
-            required
-            className="w-full p-2 rounded bg-slate-700 border border-slate-600 focus:outline-none focus:border-blue-500 text-white"
-            value={formData.email}
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium mb-1">Mot de passe</label>
-          <input
-            type="password"
-            required
-            className="w-full p-2 rounded bg-slate-700 border border-slate-600 focus:outline-none focus:border-blue-500 text-white"
-            value={formData.password}
-            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-          />
-        </div>
-        <button type="submit" className="w-full bg-green-600 hover:bg-green-700 p-2 rounded font-bold transition">
-          Se connecter
-        </button>
-      </form>
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div>
+            <label className="block text-sm font-semibold mb-1.5" style={{ color: 'var(--text-muted)' }}>
+              Adresse Email
+            </label>
+            <input
+              type="email"
+              required
+              className="form-input"
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold mb-1.5" style={{ color: 'var(--text-muted)' }}>
+              Mot de passe
+            </label>
+            <input
+              type="password"
+              required
+              className="form-input"
+              value={formData.password}
+              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+            />
+          </div>
+          <button type="submit" className="btn btn-primary w-full py-2.5 mt-2">
+            Se connecter
+          </button>
+        </form>
+      </div>
     </div>
   );
 }

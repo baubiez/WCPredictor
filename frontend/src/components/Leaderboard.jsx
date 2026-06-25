@@ -1,86 +1,84 @@
 import { useState, useEffect } from 'react';
-
 import { API } from '../config.js';
+
+const MEDAL = { 1: '🥇', 2: '🥈', 3: '🥉' };
 
 export default function Leaderboard() {
   const [leaderboard, setLeaderboard] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const currentUser = (() => { try { return JSON.parse(localStorage.getItem('user')); } catch { return null; } })();
+
   useEffect(() => {
     fetch(`${API}/api/leaderboard`)
-      .then((r) => {
-        if (!r.ok) throw new Error('Erreur serveur');
-        return r.json();
-      })
-      .then((data) => setLeaderboard(data.leaderboard || []))
+      .then((r) => { if (!r.ok) throw new Error('Erreur serveur'); return r.json(); })
+      .then((d) => setLeaderboard(d.leaderboard || []))
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, []);
 
-  const rankBadge = (rank) => {
-    if (rank === 1) return 'bg-yellow-500 text-yellow-900 shadow-lg shadow-yellow-500/20';
-    if (rank === 2) return 'bg-gray-300 text-gray-800 shadow-lg shadow-gray-400/20';
-    if (rank === 3) return 'bg-amber-700 text-white shadow-lg shadow-amber-700/20';
-    return 'bg-slate-700 text-slate-300';
-  };
-
-  const currentUser = (() => {
-    try { return JSON.parse(localStorage.getItem('user')); } catch { return null; }
-  })();
-
   return (
-    <div className="max-w-4xl mx-auto mt-10 p-6 bg-slate-800 rounded-lg shadow-xl text-white">
-      <div className="mb-8 border-b border-slate-700 pb-4 text-center">
-        <h2 className="text-3xl font-bold text-blue-400">Classement Général</h2>
-        <p className="text-slate-400 mt-2">Mesurez-vous aux autres pronostiqueurs !</p>
+    <div className="max-w-3xl mx-auto">
+      <div className="text-center mb-8">
+        <h2 className="text-3xl font-black" style={{ color: 'var(--text)' }}>
+          Classement
+        </h2>
+        <p className="mt-2" style={{ color: 'var(--text-muted)' }}>Mesurez-vous aux autres pronostiqueurs</p>
       </div>
 
-      {loading && (
-        <p className="text-slate-400 text-center py-8">Chargement du classement…</p>
-      )}
+      <div className="card overflow-hidden">
+        {loading && (
+          <p className="text-center py-12" style={{ color: 'var(--text-muted)' }}>Chargement…</p>
+        )}
+        {error && (
+          <p className="text-center py-12 text-red-400">{error}</p>
+        )}
 
-      {error && (
-        <p className="text-red-400 text-center py-8">{error}</p>
-      )}
-
-      {!loading && !error && (
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+        {!loading && !error && (
+          <table className="w-full text-left">
             <thead>
-              <tr className="bg-slate-900 border-b border-slate-700 text-slate-400 text-sm uppercase tracking-wider">
-                <th className="p-4 font-semibold text-center w-16">Rang</th>
-                <th className="p-4 font-semibold">Joueur</th>
-                <th className="p-4 font-semibold text-center w-28">Points</th>
-                <th className="p-4 font-semibold text-center hidden md:table-cell w-36">Matchs scorés</th>
+              <tr className="text-xs font-bold uppercase tracking-wider border-b" style={{ borderColor: 'var(--border)', color: 'var(--text-muted)', background: 'var(--bg-input)' }}>
+                <th className="px-5 py-3 w-16 text-center">Rang</th>
+                <th className="px-5 py-3">Joueur</th>
+                <th className="px-5 py-3 text-center w-28">Points</th>
+                <th className="px-5 py-3 text-center w-36 hidden md:table-cell">Matchs scorés</th>
               </tr>
             </thead>
             <tbody>
-              {leaderboard.map((row, index) => {
-                const rank = index + 1;
+              {leaderboard.map((row, i) => {
+                const rank = i + 1;
                 const isMe = currentUser && row.username === currentUser.username;
                 return (
                   <tr
                     key={row.user_id}
-                    className={`border-b border-slate-700/50 transition duration-150 ${
-                      isMe ? 'bg-blue-900/30 hover:bg-blue-900/40' : 'hover:bg-slate-700'
-                    }`}
+                    className="border-b transition-all duration-150"
+                    style={{
+                      borderColor: 'var(--border)',
+                      background: isMe ? 'var(--accent-glow)' : 'transparent',
+                    }}
+                    onMouseEnter={(e) => { if (!isMe) e.currentTarget.style.background = 'var(--bg-input)'; }}
+                    onMouseLeave={(e) => { if (!isMe) e.currentTarget.style.background = 'transparent'; }}
                   >
-                    <td className="p-4 text-center font-bold">
-                      <span
-                        className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold ${rankBadge(rank)}`}
-                      >
-                        {rank}
-                      </span>
+                    <td className="px-5 py-4 text-center font-bold">
+                      {MEDAL[rank] ? (
+                        <span className="text-xl">{MEDAL[rank]}</span>
+                      ) : (
+                        <span style={{ color: 'var(--text-muted)' }} className="text-sm">{rank}</span>
+                      )}
                     </td>
-                    <td className="p-4 font-medium text-lg">
+                    <td className="px-5 py-4 font-semibold" style={{ color: 'var(--text)' }}>
                       {row.username}
-                      {isMe && <span className="ml-2 text-xs text-blue-400 font-normal">(vous)</span>}
+                      {isMe && (
+                        <span className="ml-2 text-xs font-normal px-1.5 py-0.5 rounded" style={{ background: 'var(--accent-glow)', color: 'var(--accent)' }}>
+                          vous
+                        </span>
+                      )}
                     </td>
-                    <td className="p-4 text-center font-bold text-blue-400 text-xl">
+                    <td className="px-5 py-4 text-center font-black text-xl" style={{ color: 'var(--accent)' }}>
                       {row.total_points}
                     </td>
-                    <td className="p-4 text-center text-slate-400 hidden md:table-cell">
+                    <td className="px-5 py-4 text-center hidden md:table-cell" style={{ color: 'var(--text-muted)' }}>
                       {row.matches_scored}
                     </td>
                   </tr>
@@ -88,15 +86,15 @@ export default function Leaderboard() {
               })}
               {leaderboard.length === 0 && (
                 <tr>
-                  <td colSpan="4" className="p-8 text-center text-slate-500">
-                    Aucun pronostic enregistré pour le moment.
+                  <td colSpan="4" className="py-12 text-center" style={{ color: 'var(--text-muted)' }}>
+                    Aucun pronostic pour le moment.
                   </td>
                 </tr>
               )}
             </tbody>
           </table>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
