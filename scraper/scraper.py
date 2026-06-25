@@ -114,8 +114,19 @@ def parse_datetime_utc(date_str: str, time_str: str) -> datetime:
 
 
 def is_placeholder(name: str) -> bool:
-    """Vrai si le nom est un placeholder de phase éliminatoire (ex: '1A', 'W73')."""
-    return bool(re.match(r"^[0-9WL]", name or ""))
+    """
+    Vrai si le nom est un placeholder de phase éliminatoire.
+    Exemples : '1A', '2B', 'W73', 'L101', 'Winner Group A'
+    """
+    if not name:
+        return True
+    # Codes position (ex: "1A", "2B", "W73", "L12")
+    if re.match(r"^[0-9WL]\w*$", name):
+        return True
+    # Phrases descriptives (ex: "Winner Group A", "Runner-up Group B")
+    if re.search(r"\b(winner|runner|loser|group)\b", name, re.IGNORECASE):
+        return True
+    return False
 
 
 def parse_group(group_str: str) -> str | None:

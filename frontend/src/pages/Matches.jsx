@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 
-const API = 'http://localhost:3000';
+import { API } from '../config.js';
 
 const STAGE_LABEL = {
   group: 'Phase de groupes',
@@ -32,8 +33,9 @@ export default function Matches() {
   const [inputs, setInputs] = useState({});
   const [saving, setSaving] = useState({});
   const [flash, setFlash] = useState({});
-  const [groupFilter, setGroupFilter] = useState(null);   // null = tous les groupes
-  const [statusFilter, setStatusFilter] = useState('all'); // 'all' | 'scheduled' | 'finished'
+  const { state } = useLocation();
+  const [groupFilter, setGroupFilter] = useState(null);
+  const [statusFilter, setStatusFilter] = useState(state?.statusFilter ?? 'all');
   const token = localStorage.getItem('token');
 
   useEffect(() => {

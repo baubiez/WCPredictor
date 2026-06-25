@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-const API = 'http://localhost:3000';
+import { API } from '../config.js';
 
 export default function Leaderboard() {
   const [leaderboard, setLeaderboard] = useState([]);

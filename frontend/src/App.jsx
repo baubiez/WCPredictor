@@ -175,6 +175,18 @@ export default function App() {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="*"
+              element={
+                <div className="text-center mt-24">
+                  <p className="text-7xl font-black text-slate-700">404</p>
+                  <p className="text-xl text-slate-400 mt-4">Cette page n'existe pas.</p>
+                  <Link to="/" className="inline-block mt-6 bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded font-bold transition">
+                    Retour à l'accueil
+                  </Link>
+                </div>
+              }
+            />
           </Routes>
         </main>
       </div>

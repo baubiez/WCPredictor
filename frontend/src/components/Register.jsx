@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { API } from '../config.js';
 
 export default function Register() {
   const [formData, setFormData] = useState({ username: '', email: '', password: '' });
@@ -10,7 +11,7 @@ export default function Register() {
 
     try {
       // Connexion à l'API backend exposée sur le port 3000
-      const response = await fetch('http://localhost:3000/api/auth/register', {
+      const response = await fetch(`${API}/api/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),

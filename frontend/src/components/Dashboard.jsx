@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 
-const API = 'http://localhost:3000';
+import { API } from '../config.js';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -80,6 +80,7 @@ export default function Dashboard() {
           <h3 className="text-xl font-semibold">Mes pronostics</h3>
           <Link
             to="/matches"
+            state={{ statusFilter: 'scheduled' }}
             className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded text-sm font-bold transition"
           >
             + Ajouter des pronostics
@@ -93,6 +94,7 @@ export default function Dashboard() {
             <p className="text-slate-300">Vous n'avez encore fait aucun pronostic.</p>
             <Link
               to="/matches"
+              state={{ statusFilter: 'scheduled' }}
               className="inline-block mt-4 bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded font-bold transition"
             >
               Pronostiquer maintenant
