@@ -12,14 +12,16 @@ router.post('/', authenticate, rules.prediction, handle, async (req, res) => {
 
     try {
         const match = await pool.query(
-            'SELECT status FROM matches WHERE id = $1',
+            'SELECT status, match_datetime FROM matches WHERE id = $1',
             [match_id]
         );
         if (match.rows.length === 0) {
             return res.status(404).json({ error: 'Match introuvable' });
         }
-        if (match.rows[0].status !== 'scheduled') {
-            return res.status(403).json({ error: 'Ce match a déjà commencé ou est terminé' });
+        const { status, match_datetime } = match.rows[0];
+        // Double vérification : statut ET heure de coup d'envoi
+        if (status !== 'scheduled' || new Date(match_datetime) <= new Date()) {
+            return res.status(403).json({ error: 'Les pronostics sont fermés pour ce match' });
         }
 
         const result = await pool.query(

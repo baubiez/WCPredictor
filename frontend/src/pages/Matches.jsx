@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { API, authFetch } from '../config.js';
 import { useLang } from '../LanguageContext.jsx';
 import { flagUrl } from '../flags.js';
+import { teamName } from '../teamNames.js';
 
 const STAGE_ORDER = ['group', 'round32', 'round16', 'quarter', 'semi', 'final'];
 
@@ -28,7 +29,7 @@ const FilterIcon = () => (
 );
 
 export default function Matches() {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const [matches, setMatches] = useState([]);
   const [predictions, setPredictions] = useState({});
   const [botPredictions, setBotPredictions] = useState({});
@@ -277,7 +278,9 @@ export default function Matches() {
               const inp  = inputs[match.id] || { home: '', away: '' };
               const msg  = flash[match.id];
               const st   = STATUS_STYLE[match.status] || STATUS_STYLE.scheduled;
-              const isScheduled = match.status === 'scheduled';
+              // Pronostics fermés si match déjà commencé (statut OU heure dépassée)
+              const canPredict = match.status === 'scheduled'
+                && new Date(match.match_datetime) > new Date();
 
               const isFirst = stageIdx === 0 && matchIdx === 0;
               return (
@@ -290,7 +293,7 @@ export default function Matches() {
 
                     <div className="flex-1 flex items-center justify-center gap-3 min-w-0">
                       <span className="font-semibold text-right truncate w-32 flex items-center justify-end gap-1.5" style={{ color: 'var(--text)' }}>
-                        {match.home_team}
+                        {teamName(match.home_team, lang)}
                         {flagUrl(match.home_team_code) && (
                           <img src={flagUrl(match.home_team_code)} alt={match.home_team_code}
                             width="20" height="15" className="shrink-0 rounded-sm" style={{ objectFit: 'cover' }} />
@@ -310,7 +313,7 @@ export default function Matches() {
                           <img src={flagUrl(match.away_team_code)} alt={match.away_team_code}
                             width="20" height="15" className="shrink-0 rounded-sm" style={{ objectFit: 'cover' }} />
                         )}
-                        {match.away_team}
+                        {teamName(match.away_team, lang)}
                       </span>
                     </div>
 
@@ -320,7 +323,7 @@ export default function Matches() {
                       })}
                     </span>
 
-                    {isScheduled ? (
+                    {canPredict ? (
                       <div className="flex items-center gap-2 shrink-0">
                         <input type="number" min="0" max="99" className="score-box" value={inp.home}
                           onChange={(e) => handleInput(match.id, 'home', e.target.value)} placeholder="–" />
@@ -339,7 +342,7 @@ export default function Matches() {
                         )}
                       </div>
                     ) : (
-                      <div className="shrink-0 w-40 text-center">
+                      <div className="shrink-0 w-44 text-center space-y-1">
                         {pred ? (
                           <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-bold ${badgeClass(pred.points_awarded)}`}>
                             {pred.pred_home}–{pred.pred_away}
@@ -348,11 +351,17 @@ export default function Matches() {
                         ) : (
                           <span className="text-xs" style={{ color: 'var(--text-muted)' }}>{t('matches.not_predicted')}</span>
                         )}
+                        {/* Badge discret si match commencé mais pas encore terminé */}
+                        {match.status !== 'finished' && (
+                          <div className="text-xs" style={{ color: 'var(--text-muted)', opacity: 0.6 }}>
+                            🔒 {t('matches.closed')}
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
 
-                  {bot && isScheduled && (
+                  {bot && canPredict && (
                     <div className="px-4 py-2.5 flex items-center gap-3 text-xs border-t"
                       style={{ background: 'var(--bg-input)', borderColor: 'var(--border)' }}>
                       <span className="font-bold" style={{ color: '#a78bfa' }}>🤖 Botnaru</span>
