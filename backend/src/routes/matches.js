@@ -26,6 +26,7 @@ const sortDir = order === 'desc' ? 'DESC' : 'ASC';
 try {
     const result = await pool.query(
     `SELECT m.id, ht.name AS home_team, at.name AS away_team,
+            ht.code AS home_team_code, at.code AS away_team_code,
             m.match_datetime, m.status, m.home_score, m.away_score,
             m.stage, m.group_letter
     FROM matches m

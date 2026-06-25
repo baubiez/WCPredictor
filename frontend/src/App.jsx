@@ -94,6 +94,23 @@ function Home() {
         ))}
       </div>
 
+      {/* Botnaru banner */}
+      <div className="card mb-8 overflow-hidden">
+        <div className="flex items-center gap-5 px-6 py-5">
+          <div className="shrink-0 w-14 h-14 rounded-2xl flex items-center justify-center text-3xl"
+            style={{ background: 'rgba(167,139,250,0.15)', border: '1.5px solid rgba(167,139,250,0.4)' }}>
+            🤖
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="font-black text-lg" style={{ color: '#a78bfa' }}>{t('home.botnaru.tagline')}</p>
+            <p className="text-sm mt-0.5" style={{ color: 'var(--text-muted)' }}>{t('home.botnaru.desc')}</p>
+          </div>
+          <Link to="/register" className="btn btn-primary shrink-0 text-sm px-5 py-2">
+            {t('home.cta.register')}
+          </Link>
+        </div>
+      </div>
+
       {/* Layout 2 colonnes : Leaderboard + Règles */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
 
@@ -208,14 +225,18 @@ function NavBar({ dark, onToggle }) {
 
         {/* Actions : langue + thème */}
         <div className="flex items-center gap-2">
-          <button
-            onClick={toggleLang}
-            className="theme-toggle text-xs font-bold tracking-wide"
-            title={lang === 'fr' ? 'Switch to English' : 'Passer en français'}
-            style={{ width: 'auto', padding: '0 0.625rem', gap: '0.25rem', fontSize: '0.75rem', letterSpacing: '0.05em' }}
-          >
-            {lang === 'fr' ? '🇬🇧 EN' : '🇫🇷 FR'}
-          </button>
+          <div className="flex rounded-full overflow-hidden shrink-0"
+            style={{ border: '1px solid var(--border)', background: 'var(--bg-input)' }}>
+            {['fr', 'en'].map((l) => (
+              <button key={l} onClick={() => l !== lang && toggleLang()}
+                className="px-3 py-1 text-xs font-black uppercase tracking-wide transition-all duration-200"
+                style={lang === l
+                  ? { background: 'var(--accent)', color: '#000' }
+                  : { color: 'var(--text-muted)', cursor: 'pointer' }}>
+                {l}
+              </button>
+            ))}
+          </div>
           <button className="theme-toggle" onClick={onToggle} title={dark ? 'Mode clair' : 'Mode nuit'}>
             {dark ? '☀️' : '🌙'}
           </button>

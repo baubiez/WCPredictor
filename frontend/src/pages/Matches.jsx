@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { API, authFetch } from '../config.js';
 import { useLang } from '../LanguageContext.jsx';
+import { teamFlag } from '../flags.js';
 
 const STAGE_ORDER = ['group', 'round32', 'round16', 'quarter', 'semi', 'final'];
 
@@ -275,8 +276,9 @@ export default function Matches() {
                     </span>
 
                     <div className="flex-1 flex items-center justify-center gap-3 min-w-0">
-                      <span className="font-semibold text-right truncate w-28" style={{ color: 'var(--text)' }}>
+                      <span className="font-semibold text-right truncate w-32 flex items-center justify-end gap-1.5" style={{ color: 'var(--text)' }}>
                         {match.home_team}
+                        <span className="shrink-0 text-base leading-none">{teamFlag(match.home_team_code)}</span>
                       </span>
                       {match.status === 'finished' ? (
                         <span className="text-xl font-black shrink-0 w-14 text-center" style={{ color: 'var(--accent)' }}>
@@ -287,7 +289,8 @@ export default function Matches() {
                           {t('common.vs')}
                         </span>
                       )}
-                      <span className="font-semibold text-left truncate w-28" style={{ color: 'var(--text)' }}>
+                      <span className="font-semibold text-left truncate w-32 flex items-center gap-1.5" style={{ color: 'var(--text)' }}>
+                        <span className="shrink-0 text-base leading-none">{teamFlag(match.away_team_code)}</span>
                         {match.away_team}
                       </span>
                     </div>
@@ -333,7 +336,7 @@ export default function Matches() {
                   {bot && isScheduled && (
                     <div className="px-4 py-2.5 flex items-center gap-3 text-xs border-t"
                       style={{ background: 'var(--bg-input)', borderColor: 'var(--border)' }}>
-                      <span className="font-bold" style={{ color: '#a78bfa' }}>🤖 Bot IA</span>
+                      <span className="font-bold" style={{ color: '#a78bfa' }}>🤖 Botnaru</span>
                       <span className="font-black" style={{ color: 'var(--accent)' }}>{bot.pred_home}–{bot.pred_away}</span>
                       <span style={{ color: 'var(--text-muted)' }}>
                         Dom. <span className="text-green-400 font-semibold">{Math.round(bot.prob_home_win * 100)}%</span>
