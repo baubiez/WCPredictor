@@ -1,30 +1,58 @@
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
-import Home from './pages/Home';
-import Login from './pages/Login';
-import Leaderboard from './pages/Leaderboard';
+import Login from './components/Login';
+import Register from './components/Register';
+import Dashboard from './components/Dashboard';
+import ProtectedRoute from './components/ProtectedRoute';
 
-function App() {
+export default function App() {
+  // On vérifie si l'utilisateur est connecté pour adapter le menu
+  const isLoggedIn = !!localStorage.getItem('token');
+
   return (
     <Router>
-      {/* Barre de navigation */}
-      <nav className="bg-gray-800 text-white p-4 shadow-md">
-        <div className="container mx-auto flex gap-6">
-          <Link to="/" className="hover:text-blue-300 font-semibold">Accueil</Link>
-          <Link to="/leaderboard" className="hover:text-blue-300 font-semibold">Classement</Link>
-          <Link to="/login" className="hover:text-blue-300 font-semibold ml-auto">Connexion</Link>
-        </div>
-      </nav>
+      <div className="min-h-screen bg-slate-900 text-white font-sans">
+        
+        <nav className="bg-slate-800 p-4 shadow-md">
+          <div className="container mx-auto flex justify-between items-center">
+            <Link to="/" className="text-xl font-bold text-blue-400">WCPredictor</Link>
+            
+            <div className="space-x-4">
+              {isLoggedIn ? (
+                // Menu affiché si connecté
+                <Link to="/dashboard" className="hover:text-blue-300 transition">Mon Tableau de Bord</Link>
+              ) : (
+                // Menu affiché si déconnecté
+                <>
+                  <Link to="/login" className="hover:text-blue-300 transition">Se connecter</Link>
+                  <Link to="/register" className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded transition">S'inscrire</Link>
+                </>
+              )}
+            </div>
+          </div>
+        </nav>
 
-      {/* Zone où les pages s'affichent */}
-      <main className="container mx-auto mt-4">
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/leaderboard" element={<Leaderboard />} />
-        </Routes>
-      </main>
+        <main className="container mx-auto p-4 mt-8">
+          <Routes>
+            {/* Routes publiques */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/" element={
+              <div className="text-center mt-20">
+                <h2 className="text-3xl font-bold mb-4">Bienvenue sur WCPredictor</h2>
+                <p className="text-slate-400">Veuillez vous connecter pour commencer à pronostiquer.</p>
+              </div>
+            } />
+
+            {/* Route PROTÉGÉE */}
+            <Route path="/dashboard" element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            } />
+          </Routes>
+        </main>
+
+      </div>
     </Router>
   );
 }
-
-export default App;
