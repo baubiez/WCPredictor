@@ -1,45 +1,46 @@
 const express = require('express');
 const authenticate = require('../middleware/auth');
+const { runScrape } = require('../scraper');
 
 const router = express.Router();
 
-const SCRAPER_URL = process.env.SCRAPER_URL || 'http://scraper:5001';
+// État en mémoire du scraping en cours
+let _status = { running: false, last: null };
+
+function triggerScrape() {
+    if (_status.running) return false;
+    _status.running = true;
+
+    runScrape()
+        .then((stats) => {
+            _status.last = { success: true, trigger: 'manuel', at: new Date().toISOString(), stats };
+        })
+        .catch((err) => {
+            console.error('Scraping échoué :', err.message);
+            _status.last = { success: false, trigger: 'manuel', error: err.message, at: new Date().toISOString() };
+        })
+        .finally(() => { _status.running = false; });
+
+    return true;
+}
 
 // POST /api/admin/scrape — déclenche un import (admin uniquement)
-router.post('/scrape', authenticate, async (req, res) => {
+router.post('/scrape', authenticate, (req, res) => {
     if (req.user.role !== 'admin') {
         return res.status(403).json({ error: 'Réservé aux administrateurs' });
     }
-    try {
-        const response = await fetch(`${SCRAPER_URL}/scrape`, {
-            method: 'POST',
-            signal: AbortSignal.timeout(10_000),
-        });
-        const data = await response.json();
-        if (!response.ok) {
-            return res.status(502).json({ error: data.error || 'Erreur scraper' });
-        }
-        res.status(202).json(data);
-    } catch (err) {
-        console.error('Scraper trigger error:', err.message);
-        res.status(503).json({ error: 'Service de scraping indisponible' });
+    if (!triggerScrape()) {
+        return res.status(409).json({ error: 'Scraping déjà en cours' });
     }
+    res.status(202).json({ message: 'Scraping démarré' });
 });
 
 // GET /api/admin/scrape/status — état du dernier scraping (admin uniquement)
-router.get('/scrape/status', authenticate, async (req, res) => {
+router.get('/scrape/status', authenticate, (req, res) => {
     if (req.user.role !== 'admin') {
         return res.status(403).json({ error: 'Réservé aux administrateurs' });
     }
-    try {
-        const response = await fetch(`${SCRAPER_URL}/status`, {
-            signal: AbortSignal.timeout(5_000),
-        });
-        const data = await response.json();
-        res.json(data);
-    } catch {
-        res.status(503).json({ error: 'Service de scraping indisponible' });
-    }
+    res.json(_status);
 });
 
 module.exports = router;
