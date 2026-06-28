@@ -3,22 +3,41 @@ import { Link, useNavigate } from 'react-router-dom';
 import { API, authFetch } from '../config.js';
 import { useLang } from '../LanguageContext.jsx';
 
+const PASSWORD_RULES = [
+  { label: '8 caractères minimum', test: (p) => p.length >= 8 },
+  { label: 'Au moins une majuscule', test: (p) => /[A-Z]/.test(p) },
+  { label: 'Au moins une minuscule', test: (p) => /[a-z]/.test(p) },
+  { label: 'Au moins un chiffre',    test: (p) => /[0-9]/.test(p) },
+];
+
 export default function Register() {
   const [formData, setFormData] = useState({ username: '', email: '', password: '' });
   const [message, setMessage] = useState({ text: '', isError: false });
+  const [fieldErrors, setFieldErrors] = useState({});
   const navigate = useNavigate();
   const { t } = useLang();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage({ text: '', isError: false });
+    setFieldErrors({});
     try {
       const response = await authFetch(`${API}/api/auth/register`, {
         method: 'POST',
         body: JSON.stringify(formData),
       });
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Erreur lors de l'inscription.");
+      if (!response.ok) {
+        if (data.errors && Array.isArray(data.errors)) {
+          const byField = {};
+          data.errors.forEach(({ field, message }) => { byField[field] = message; });
+          setFieldErrors(byField);
+          setMessage({ text: "Corrigez les erreurs ci-dessous.", isError: true });
+        } else {
+          throw new Error(data.error || "Erreur lors de l'inscription.");
+        }
+        return;
+      }
       setMessage({ text: 'Compte créé ! Vous pouvez vous connecter.', isError: false });
       setFormData({ username: '', email: '', password: '' });
       setTimeout(() => navigate('/login'), 1500);
@@ -62,6 +81,9 @@ export default function Register() {
               value={formData.username}
               onChange={(e) => setFormData({ ...formData, username: e.target.value })}
             />
+            {fieldErrors.username && (
+              <p className="text-xs mt-1.5 text-red-400">{fieldErrors.username}</p>
+            )}
           </div>
           <div>
             <label className="block text-sm font-semibold mb-1.5" style={{ color: 'var(--text-muted)' }}>
@@ -74,6 +96,9 @@ export default function Register() {
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
             />
+            {fieldErrors.email && (
+              <p className="text-xs mt-1.5 text-red-400">{fieldErrors.email}</p>
+            )}
           </div>
           <div>
             <label className="block text-sm font-semibold mb-1.5" style={{ color: 'var(--text-muted)' }}>
@@ -86,6 +111,21 @@ export default function Register() {
               value={formData.password}
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
             />
+            {fieldErrors.password && (
+              <p className="text-xs mt-1.5 text-red-400">{fieldErrors.password}</p>
+            )}
+            <ul className="mt-2 space-y-1">
+              {PASSWORD_RULES.map(({ label, test }) => {
+                const ok = formData.password.length > 0 && test(formData.password);
+                return (
+                  <li key={label} className="flex items-center gap-1.5 text-xs"
+                    style={{ color: ok ? 'var(--accent)' : 'var(--text-muted)' }}>
+                    <span>{ok ? '✓' : '·'}</span>
+                    {label}
+                  </li>
+                );
+              })}
+            </ul>
           </div>
           <button type="submit" className="btn btn-primary w-full py-2.5 mt-2">
             {t('register.submit')}
