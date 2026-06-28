@@ -278,21 +278,20 @@ export default function Matches() {
               const inp  = inputs[match.id] || { home: '', away: '' };
               const msg  = flash[match.id];
               const st   = STATUS_STYLE[match.status] || STATUS_STYLE.scheduled;
-              // Pronostics fermés si match déjà commencé (statut OU heure dépassée)
               const canPredict = match.status === 'scheduled'
                 && new Date(match.match_datetime) > new Date();
 
               const isFirst = stageIdx === 0 && matchIdx === 0;
               return (
                 <div key={match.id} ref={isFirst ? firstCardRef : null} className="card overflow-hidden">
-                  <div className="p-4 flex flex-wrap sm:flex-nowrap items-center gap-3">
+                  <div className="p-3 sm:p-4 flex flex-wrap sm:flex-nowrap items-center gap-3">
                     <span className="text-xs font-bold px-2.5 py-1 rounded-full shrink-0 w-20 text-center"
                       style={{ background: st.bg, color: st.color, border: `1px solid ${st.border}` }}>
                       {STATUS_LABEL[match.status]}
                     </span>
 
                     <div className="flex-1 flex items-center justify-center gap-3 min-w-0">
-                      <span className="font-semibold text-right truncate w-32 flex items-center justify-end gap-1.5" style={{ color: 'var(--text)' }}>
+                      <span className="font-semibold text-right truncate w-24 sm:w-32 flex items-center justify-end gap-1.5" style={{ color: 'var(--text)' }}>
                         {teamName(match.home_team, lang)}
                         {flagUrl(match.home_team_code) && (
                           <img src={flagUrl(match.home_team_code)} alt={match.home_team_code}
@@ -308,7 +307,7 @@ export default function Matches() {
                           {t('common.vs')}
                         </span>
                       )}
-                      <span className="font-semibold text-left truncate w-32 flex items-center gap-1.5" style={{ color: 'var(--text)' }}>
+                      <span className="font-semibold text-left truncate w-24 sm:w-32 flex items-center gap-1.5" style={{ color: 'var(--text)' }}>
                         {flagUrl(match.away_team_code) && (
                           <img src={flagUrl(match.away_team_code)} alt={match.away_team_code}
                             width="20" height="15" className="shrink-0 rounded-sm" style={{ objectFit: 'cover' }} />
@@ -324,7 +323,7 @@ export default function Matches() {
                     </span>
 
                     {canPredict ? (
-                      <div className="flex items-center gap-2 shrink-0">
+                      <div className="flex items-center justify-center gap-2 w-full sm:w-auto sm:shrink-0">
                         <input type="number" min="0" max="99" className="score-box" value={inp.home}
                           onChange={(e) => handleInput(match.id, 'home', e.target.value)} placeholder="–" />
                         <span className="font-black text-sm" style={{ color: 'var(--text-muted)' }}>:</span>
@@ -342,7 +341,7 @@ export default function Matches() {
                         )}
                       </div>
                     ) : (
-                      <div className="shrink-0 w-44 text-center space-y-1">
+                      <div className="w-full sm:w-44 text-center space-y-1 sm:shrink-0">
                         {pred ? (
                           <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-bold ${badgeClass(pred.points_awarded)}`}>
                             {pred.pred_home}–{pred.pred_away}
@@ -351,7 +350,6 @@ export default function Matches() {
                         ) : (
                           <span className="text-xs" style={{ color: 'var(--text-muted)' }}>{t('matches.not_predicted')}</span>
                         )}
-                        {/* Badge discret si match commencé mais pas encore terminé */}
                         {match.status !== 'finished' && (
                           <div className="text-xs" style={{ color: 'var(--text-muted)', opacity: 0.6 }}>
                             🔒 {t('matches.closed')}
@@ -362,7 +360,7 @@ export default function Matches() {
                   </div>
 
                   {bot && canPredict && (
-                    <div className="px-4 py-2.5 flex items-center gap-3 text-xs border-t"
+                    <div className="px-4 py-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs border-t"
                       style={{ background: 'var(--bg-input)', borderColor: 'var(--border)' }}>
                       <span className="font-bold" style={{ color: '#a78bfa' }}>🤖 Botnaru</span>
                       <span className="font-black" style={{ color: 'var(--accent)' }}>{bot.pred_home}–{bot.pred_away}</span>

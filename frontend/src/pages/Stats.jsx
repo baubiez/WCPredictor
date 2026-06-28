@@ -64,8 +64,8 @@ export default function Stats() {
                       <th className="px-4 py-2 text-left">Équipe</th>
                       <th className="px-3 py-2 text-center">J</th>
                       <th className="px-3 py-2 text-center">Pts</th>
-                      <th className="px-3 py-2 text-center">BP</th>
-                      <th className="px-3 py-2 text-center">BC</th>
+                      <th className="px-3 py-2 text-center hidden sm:table-cell">BP</th>
+                      <th className="px-3 py-2 text-center hidden sm:table-cell">BC</th>
                       <th className="px-3 py-2 text-center">Diff</th>
                     </tr>
                   </thead>
@@ -82,8 +82,8 @@ export default function Stats() {
                         </td>
                         <td className="px-3 py-2.5 text-center" style={{ color: 'var(--text-muted)' }}>{team.played}</td>
                         <td className="px-3 py-2.5 text-center font-black" style={{ color: 'var(--accent)' }}>{team.points}</td>
-                        <td className="px-3 py-2.5 text-center" style={{ color: 'var(--text-muted)' }}>{team.goals_for}</td>
-                        <td className="px-3 py-2.5 text-center" style={{ color: 'var(--text-muted)' }}>{team.goals_against}</td>
+                        <td className="px-3 py-2.5 text-center hidden sm:table-cell" style={{ color: 'var(--text-muted)' }}>{team.goals_for}</td>
+                        <td className="px-3 py-2.5 text-center hidden sm:table-cell" style={{ color: 'var(--text-muted)' }}>{team.goals_against}</td>
                         <td className="px-3 py-2.5 text-center font-semibold" style={{ color: team.goal_diff >= 0 ? '#22c55e' : '#ef4444' }}>
                           {team.goal_diff > 0 ? `+${team.goal_diff}` : team.goal_diff}
                         </td>
@@ -116,7 +116,7 @@ export default function Stats() {
                   <th className="px-4 py-3 text-left">Joueur</th>
                   <th className="px-4 py-3 text-left">Équipe</th>
                   <th className="px-4 py-3 text-center">Buts</th>
-                  <th className="px-4 py-3 text-center">Passes</th>
+                  <th className="px-4 py-3 text-center hidden sm:table-cell">Passes</th>
                 </tr>
               </thead>
               <tbody>
@@ -131,7 +131,7 @@ export default function Stats() {
                       {s.team} <span className="opacity-50 text-xs">{s.code}</span>
                     </td>
                     <td className="px-4 py-3 text-center font-black text-lg" style={{ color: 'var(--accent)' }}>{s.goals}</td>
-                    <td className="px-4 py-3 text-center" style={{ color: 'var(--text-muted)' }}>{s.assists}</td>
+                    <td className="px-4 py-3 text-center hidden sm:table-cell" style={{ color: 'var(--text-muted)' }}>{s.assists}</td>
                   </tr>
                 ))}
               </tbody>

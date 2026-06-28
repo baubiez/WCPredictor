@@ -14,6 +14,19 @@ import Admin from './pages/Admin';
 /* ── Home ── */
 const MEDAL = { 1: '🥇', 2: '🥈', 3: '🥉' };
 
+/* ── Icônes SVG pour la barre de navigation mobile ── */
+const iP = { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' };
+const BallIcon   = () => <svg {...iP}><circle cx="12" cy="12" r="9"/><path d="M12 7.2l3.2 2.3-1.2 3.7h-4L8.8 9.5z"/></svg>;
+const ChartIcon  = () => <svg {...iP}><line x1="5" y1="20" x2="5" y2="12"/><line x1="12" y1="20" x2="12" y2="5"/><line x1="19" y1="20" x2="19" y2="9"/></svg>;
+const TrophyIcon = () => <svg {...iP}><path d="M7 4h10v4a5 5 0 0 1-10 0V4z"/><path d="M5 5H3v1.5a3.5 3.5 0 0 0 3.5 3.5"/><path d="M19 5h2v1.5a3.5 3.5 0 0 1-3.5 3.5"/><path d="M9 20h6M12 14v6"/></svg>;
+const GridIcon   = () => <svg {...iP}><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>;
+const GearIcon   = () => <svg {...iP}><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5.2 5.2l2.1 2.1M16.7 16.7l2.1 2.1M18.8 5.2l-2.1 2.1M7.3 16.7l-2.1 2.1"/></svg>;
+
+const SHORT_TABS = {
+  fr: { matches: 'Matchs', stats: 'Stats', leaderboard: 'Classement', dashboard: 'Mon espace', admin: 'Admin' },
+  en: { matches: 'Matches', stats: 'Stats', leaderboard: 'Ranking', dashboard: 'My space', admin: 'Admin' },
+};
+
 function Home() {
   const { t } = useLang();
   const isLoggedIn = !!localStorage.getItem('user');
@@ -63,7 +76,7 @@ function Home() {
       {/* Hero */}
       <div className="text-center mb-10">
         <img src="/favicon.svg" alt="World Cup Predictor.AI" width="72" height="72" className="inline-block mb-4" />
-        <h1 className="text-5xl font-black tracking-tight" style={{ color: 'var(--text)' }}>
+        <h1 className="text-4xl sm:text-5xl font-black tracking-tight" style={{ color: 'var(--text)' }}>
           World Cup Predictor<span style={{ color: 'var(--accent)' }}>.AI</span>
         </h1>
         <p style={{ color: 'var(--text-muted)' }} className="mt-3 text-lg max-w-xl mx-auto">
@@ -93,7 +106,7 @@ function Home() {
 
       {/* Botnaru banner */}
       <div className="card mb-8 overflow-hidden">
-        <div className="flex items-center gap-5 px-6 py-5">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-5 px-5 sm:px-6 py-5">
           <div className="shrink-0 w-14 h-14 rounded-2xl flex items-center justify-center text-3xl"
             style={{ background: 'rgba(167,139,250,0.15)', border: '1.5px solid rgba(167,139,250,0.4)' }}>
             🤖
@@ -102,7 +115,7 @@ function Home() {
             <p className="font-black text-lg" style={{ color: '#a78bfa' }}>{t('home.botnaru.tagline')}</p>
             <p className="text-sm mt-0.5" style={{ color: 'var(--text-muted)' }}>{t('home.botnaru.desc')}</p>
           </div>
-          <Link to="/register" className="btn btn-primary shrink-0 text-sm px-5 py-2">
+          <Link to="/register" className="btn btn-primary shrink-0 text-sm px-5 py-2 w-full sm:w-auto">
             {t('home.cta.register')}
           </Link>
         </div>
@@ -204,7 +217,7 @@ function NavBar({ dark, onToggle }) {
           </span>
         </Link>
 
-        <div className="flex items-center gap-6">
+        <div className="hidden md:flex items-center gap-6">
           {isLoggedIn ? (
             <>
               {navLink('/matches',     t('nav.matches'))}
@@ -221,8 +234,11 @@ function NavBar({ dark, onToggle }) {
           )}
         </div>
 
-        {/* Actions : langue + thème */}
+        {/* Actions : langue + thème (+ register mobile si déconnecté) */}
         <div className="flex items-center gap-2">
+          {!isLoggedIn && (
+            <Link to="/register" className="btn btn-primary text-sm px-3 py-2 md:hidden">{t('nav.register')}</Link>
+          )}
           <div className="flex rounded-full overflow-hidden shrink-0"
             style={{ border: '1px solid var(--border)', background: 'var(--bg-input)' }}>
             {['fr', 'en'].map((l) => (
@@ -244,9 +260,38 @@ function NavBar({ dark, onToggle }) {
   );
 }
 
+/* ── Bottom tab bar (mobile, utilisateur connecté) ── */
+function BottomNav() {
+  const { lang } = useLang();
+  const location = useLocation();
+  const isLoggedIn = !!localStorage.getItem('user');
+  const user = (() => { try { return JSON.parse(localStorage.getItem('user')); } catch { return null; } })();
+  if (!isLoggedIn) return null;
+  const labels = SHORT_TABS[lang] || SHORT_TABS.fr;
+  const tabs = [
+    { to: '/matches',     label: labels.matches,     icon: <BallIcon /> },
+    { to: '/stats',       label: labels.stats,       icon: <ChartIcon /> },
+    { to: '/leaderboard', label: labels.leaderboard, icon: <TrophyIcon /> },
+    { to: '/dashboard',   label: labels.dashboard,   icon: <GridIcon /> },
+  ];
+  if (user?.role === 'admin') tabs.push({ to: '/admin', label: labels.admin, icon: <GearIcon /> });
+  return (
+    <nav className="bottom-nav fixed bottom-0 inset-x-0 z-50 flex md:hidden">
+      {tabs.map((tab) => (
+        <Link key={tab.to} to={tab.to}
+          className={`bottom-nav-link${location.pathname === tab.to ? ' active' : ''}`}>
+          {tab.icon}
+          <span>{tab.label}</span>
+        </Link>
+      ))}
+    </nav>
+  );
+}
+
 /* ── App ── */
 export default function App() {
   const [dark, setDark] = useState(() => localStorage.getItem('theme') !== 'light');
+  const isLoggedIn = !!localStorage.getItem('user');
 
   const toggleDark = () => {
     const next = !dark;
@@ -261,7 +306,7 @@ export default function App() {
           <div className="min-h-screen transition-colors duration-300" style={{ backgroundColor: 'var(--bg)', color: 'var(--text)' }}>
             <NavBar dark={dark} onToggle={toggleDark} />
 
-            <main className="max-w-6xl mx-auto px-4 py-8">
+            <main className={`max-w-6xl mx-auto px-4 py-8${isLoggedIn ? ' pb-28 md:pb-8' : ''}`}>
               <Routes>
                 <Route path="/login"    element={<Login />} />
                 <Route path="/register" element={<Register />} />
@@ -273,11 +318,10 @@ export default function App() {
                 <Route path="/stats"       element={<ProtectedRoute><Stats /></ProtectedRoute>} />
                 <Route path="/admin"       element={<ProtectedRoute><Admin /></ProtectedRoute>} />
 
-                <Route path="*" element={
-                  <NotFound />
-                } />
+                <Route path="*" element={<NotFound />} />
               </Routes>
             </main>
+            <BottomNav />
           </div>
         </Router>
       </div>

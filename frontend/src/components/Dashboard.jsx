@@ -54,7 +54,7 @@ export default function Dashboard() {
             {t('dashboard.connected_as')} <span style={{ color: 'var(--accent)' }} className="font-bold">{user.username}</span>
           </p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex gap-2 sm:gap-3 flex-wrap">
           <Link to="/matches" state={{ statusFilter: 'scheduled' }} className="btn btn-primary text-sm px-4 py-2">
             {t('dashboard.btn.predict')}
           </Link>
@@ -71,9 +71,9 @@ export default function Dashboard() {
           { val: exact,       label: t('dashboard.stat.exact'),   color: '#F5B705' },
           { val: partial,     label: t('dashboard.stat.partial'), color: '#22c55e' },
         ].map((s) => (
-          <div key={s.label} className="card p-5 text-center">
-            <p className="text-4xl font-black" style={{ color: s.color }}>{s.val}</p>
-            <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>{s.label}</p>
+          <div key={s.label} className="card p-4 sm:p-5 text-center">
+            <p className="text-3xl sm:text-4xl font-black" style={{ color: s.color }}>{s.val}</p>
+            <p className="text-xs sm:text-sm mt-1" style={{ color: 'var(--text-muted)' }}>{s.label}</p>
           </div>
         ))}
       </div>
