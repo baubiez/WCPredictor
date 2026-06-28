@@ -6,11 +6,13 @@ const { rules, handle } = require('../middleware/validate');
 
 const router = express.Router();
 
+const IS_PROD = process.env.NODE_ENV === 'production';
+
 const COOKIE_OPTIONS = {
     httpOnly: true,
-    sameSite: 'lax',
+    sameSite: IS_PROD ? 'none' : 'lax',  // 'none' requis pour cross-origin (Vercel → Render)
+    secure: IS_PROD,                       // 'none' exige secure:true
     maxAge: 7 * 24 * 60 * 60 * 1000,
-    secure: process.env.NODE_ENV === 'production',
 };
 
 // INSCRIPTION
