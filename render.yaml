@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: wcpredictor-scraper
+    runtime: python
+    rootDir: scraper
+    buildCommand: pip install -r requirements.txt
+    startCommand: python scraper.py --serve
+    plan: free
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: SCRAPER_TZ
+        value: Europe/Paris
+      - key: SCRAPER_HOUR
+        value: "10"

@@ -467,7 +467,8 @@ def _start_scheduler():
 if __name__ == "__main__":
     if "--serve" in sys.argv:
         _start_scheduler()
-        log.info("Mode serveur démarré sur le port 5001.")
-        _flask_app.run(host="0.0.0.0", port=5001, debug=False)
+        port = int(os.environ.get("PORT", 5001))
+        log.info("Mode serveur démarré sur le port %d.", port)
+        _flask_app.run(host="0.0.0.0", port=port, debug=False)
     else:
         main()
