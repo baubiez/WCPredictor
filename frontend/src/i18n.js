@@ -8,6 +8,7 @@ const t = {
     'nav.admin':       'Admin',
     'nav.login':       'Se connecter',
     'nav.register':    "S'inscrire",
+    'nav.profile':     'Profil',
 
     // Home
     'home.subtitle':             'Coupe du Monde 2026 — Faites vos pronostics et affrontez vos amis !',
@@ -125,6 +126,20 @@ const t = {
     'stats.col.goals':     'Buts',
     'stats.col.assists':   'Passes D.',
 
+    // Profile
+    'profile.title':                    'Paramètres du compte',
+    'profile.subtitle':                 'Modifiez votre email ou votre mot de passe',
+    'profile.section.email':            'Changer d\'adresse email',
+    'profile.section.password':         'Changer de mot de passe',
+    'profile.current_email':            'Email actuel :',
+    'profile.field.new_email':          'Nouvelle adresse email',
+    'profile.field.current_password':   'Mot de passe actuel',
+    'profile.field.new_password':       'Nouveau mot de passe',
+    'profile.field.confirm_password':   'Confirmer le nouveau mot de passe',
+    'profile.btn.save':                 'Enregistrer',
+    'profile.success':                  'Modifications enregistrées avec succès !',
+    'profile.error.password_mismatch':  'Les mots de passe ne correspondent pas',
+
     // Admin
     'admin.title':         'Interface Admin',
     'admin.subtitle':      'Saisie des résultats — les points sont calculés automatiquement',
@@ -151,6 +166,7 @@ const t = {
     'nav.admin':       'Admin',
     'nav.login':       'Log in',
     'nav.register':    'Sign up',
+    'nav.profile':     'Profile',
 
     'home.subtitle':             'World Cup 2026 — Make your predictions and compete with friends!',
     'home.kpi.remaining':        'Matches left',
@@ -261,6 +277,19 @@ const t = {
     'stats.col.team2':     'Team',
     'stats.col.goals':     'Goals',
     'stats.col.assists':   'Assists',
+
+    'profile.title':                    'Account settings',
+    'profile.subtitle':                 'Update your email or password',
+    'profile.section.email':            'Change email',
+    'profile.section.password':         'Change password',
+    'profile.current_email':            'Current email:',
+    'profile.field.new_email':          'New email address',
+    'profile.field.current_password':   'Current password',
+    'profile.field.new_password':       'New password',
+    'profile.field.confirm_password':   'Confirm new password',
+    'profile.btn.save':                 'Save changes',
+    'profile.success':                  'Changes saved successfully!',
+    'profile.error.password_mismatch':  'Passwords do not match',
 
     'admin.title':         'Admin Panel',
     'admin.subtitle':      'Enter results — points are calculated automatically',

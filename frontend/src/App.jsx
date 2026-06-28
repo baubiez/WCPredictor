@@ -10,6 +10,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Matches from './pages/Matches';
 import Stats from './pages/Stats';
 import Admin from './pages/Admin';
+import Profile from './pages/Profile';
 
 /* ── Home ── */
 const MEDAL = { 1: '🥇', 2: '🥈', 3: '🥉' };
@@ -224,6 +225,7 @@ function NavBar({ dark, onToggle }) {
               {navLink('/stats',       t('nav.stats'))}
               {navLink('/leaderboard', t('nav.leaderboard'))}
               {navLink('/dashboard',   t('nav.dashboard'))}
+              {navLink('/profile',     t('nav.profile'))}
               {user?.role === 'admin' && navLink('/admin', t('nav.admin'))}
             </>
           ) : (
@@ -316,7 +318,8 @@ export default function App() {
                 <Route path="/dashboard"   element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
                 <Route path="/leaderboard" element={<ProtectedRoute><Leaderboard /></ProtectedRoute>} />
                 <Route path="/stats"       element={<ProtectedRoute><Stats /></ProtectedRoute>} />
-                <Route path="/admin"       element={<ProtectedRoute><Admin /></ProtectedRoute>} />
+                <Route path="/admin"   element={<ProtectedRoute><Admin /></ProtectedRoute>} />
+                <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
 
                 <Route path="*" element={<NotFound />} />
               </Routes>

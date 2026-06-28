@@ -31,7 +31,7 @@ app.use(cors({
         cb(Object.assign(new Error('CORS_BLOCKED'), { status: 403 }));
     },
     credentials: true,
-    methods: ['GET', 'POST', 'OPTIONS'],
+    methods: ['GET', 'POST', 'PUT', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
@@ -66,6 +66,7 @@ app.use('/api/stats',           require('./routes/stats'));
 app.use('/api/bot-predictions', require('./routes/botpredictions'));
 app.use('/api/home-stats',      require('./routes/homestats'));
 app.use('/api/admin',           require('./routes/admin'));
+app.use('/api/users',           require('./routes/users'));
 
 // ── 404 JSON (route inconnue) ─────────────────────────────────────────────────
 app.use((_req, res) => res.status(404).json({ error: 'Route introuvable' }));
