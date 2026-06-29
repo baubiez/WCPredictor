@@ -21,6 +21,9 @@ export default function Admin() {
   const [botFlash, setBotFlash] = useState(null);
   const [seedFlash, setSeedFlash] = useState(null);
 
+  const [roleUsername, setRoleUsername] = useState('');
+  const [roleFlash, setRoleFlash] = useState(null);
+
   useEffect(() => {
     if (!user || user.role !== 'admin') navigate('/');
   }, []);
@@ -124,6 +127,25 @@ export default function Admin() {
       setSeedFlash({ text: err.message, isError: true });
     } finally {
       setTimeout(() => setSeedFlash(null), 8000);
+    }
+  };
+
+  const handleSetRole = async (role) => {
+    if (!roleUsername.trim()) return;
+    setRoleFlash(null);
+    try {
+      const res = await authFetch(`${API}/api/admin/set-role`, {
+        method: 'POST',
+        body: JSON.stringify({ username: roleUsername.trim(), role }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Erreur');
+      setRoleFlash({ text: data.message, isError: false });
+      setRoleUsername('');
+    } catch (err) {
+      setRoleFlash({ text: err.message, isError: true });
+    } finally {
+      setTimeout(() => setRoleFlash(null), 6000);
     }
   };
 
@@ -253,6 +275,42 @@ export default function Admin() {
             </button>
           </div>
         </div>
+      </div>
+
+      {/* Section gestion des rôles */}
+      <div className="card p-4 mb-6">
+        <p className="font-semibold mb-1" style={{ color: 'var(--text)' }}>👤 Gestion des rôles</p>
+        <p className="text-xs mb-3" style={{ color: 'var(--text-muted)' }}>
+          Promouvoir ou rétrograder un utilisateur.
+        </p>
+        <div className="flex flex-wrap items-center gap-2">
+          <input
+            type="text"
+            placeholder="Nom d'utilisateur"
+            value={roleUsername}
+            onChange={(e) => setRoleUsername(e.target.value)}
+            className="flex-1 min-w-40 text-sm px-3 py-2 rounded-lg"
+            style={{ background: 'var(--bg-input)', border: '1px solid var(--border)', color: 'var(--text)' }}
+          />
+          <button
+            onClick={() => handleSetRole('admin')}
+            disabled={!roleUsername.trim()}
+            className="btn btn-primary text-sm px-4 py-2">
+            → Admin
+          </button>
+          <button
+            onClick={() => handleSetRole('user')}
+            disabled={!roleUsername.trim()}
+            className="btn text-sm px-4 py-2"
+            style={{ background: 'var(--bg-input)', border: '1px solid var(--border)', color: 'var(--text)' }}>
+            → User
+          </button>
+        </div>
+        {roleFlash && (
+          <p className={`text-xs mt-2 font-semibold ${roleFlash.isError ? 'text-red-400' : 'text-green-400'}`}>
+            {roleFlash.text}
+          </p>
+        )}
       </div>
 
       {/* Onglets */}

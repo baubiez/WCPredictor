@@ -111,6 +111,30 @@ router.post('/seed-botnaru-prediction', authenticate, async (req, res) => {
     }
 });
 
+// POST /api/admin/set-role — change le rôle d'un utilisateur (admin uniquement)
+router.post('/set-role', authenticate, async (req, res) => {
+    if (req.user.role !== 'admin') {
+        return res.status(403).json({ error: 'Réservé aux administrateurs' });
+    }
+    const { username, role } = req.body;
+    if (!username || !['admin', 'user'].includes(role)) {
+        return res.status(400).json({ error: 'username et role (admin|user) requis' });
+    }
+    try {
+        const result = await pool.query(
+            `UPDATE users SET role = $1 WHERE username = $2 RETURNING id, username, role`,
+            [role, username]
+        );
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: `Utilisateur "${username}" introuvable` });
+        }
+        res.json({ message: `✓ ${result.rows[0].username} est maintenant ${role}`, user: result.rows[0] });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // GET /api/admin/scrape/status — état du dernier scraping (admin uniquement)
 router.get('/scrape/status', authenticate, (req, res) => {
     if (req.user.role !== 'admin') {
