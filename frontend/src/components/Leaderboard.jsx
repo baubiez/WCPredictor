@@ -2,40 +2,11 @@ import { useState, useEffect } from 'react';
 import { API } from '../config.js';
 import { useLang } from '../LanguageContext.jsx';
 
-/* ── Médaille circulaire avec ruban ── */
-const BADGE = {
-  1: { outer: '#D97706', inner: '#FEF3C7', text: '#92400E' },
-  2: { outer: '#7C3AED', inner: '#EDE9FE', text: '#4C1D95' },
-  3: { outer: '#78716C', inner: '#F5F5F4', text: '#44403C' },
-};
-
-function MedalBadge({ rank }) {
-  const c = BADGE[rank];
-  if (!c) {
-    return (
-      <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-muted)' }}>{rank}</span>
-    );
-  }
-  return (
-    <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center' }}>
-      <div style={{
-        width: 30, height: 30, borderRadius: '50%',
-        background: `radial-gradient(circle at 35% 35%, ${c.inner}, ${c.outer})`,
-        border: `2px solid ${c.outer}`,
-        boxShadow: `0 2px 8px ${c.outer}66`,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontWeight: 900, fontSize: 12, color: c.text,
-      }}>
-        {rank}
-      </div>
-      <div style={{
-        width: 10, height: 6, marginTop: -1,
-        background: c.outer,
-        clipPath: 'polygon(10% 0%, 90% 0%, 100% 100%, 50% 70%, 0% 100%)',
-      }} />
-    </div>
-  );
-}
+const PODIUM = [
+  { rank: 2, medal: '🥈', color: '#7C7C94', height: 88,  avatarSize: 50, fontSize: 18 },
+  { rank: 1, medal: '🥇', color: '#C8A02A', height: 120, avatarSize: 62, fontSize: 24 },
+  { rank: 3, medal: '🥉', color: '#A0624A', height: 64,  avatarSize: 50, fontSize: 18 },
+];
 
 export default function Leaderboard() {
   const [leaderboard, setLeaderboard] = useState([]);
@@ -55,6 +26,9 @@ export default function Leaderboard() {
       .finally(() => setLoading(false));
   }, []);
 
+  const top3  = leaderboard.slice(0, 3);
+  const rest  = leaderboard.slice(3);
+
   return (
     <div className="max-w-4xl mx-auto">
       <div className="text-center mb-8">
@@ -66,115 +40,100 @@ export default function Leaderboard() {
         </p>
       </div>
 
-      <div className="card overflow-hidden">
-        {loading && (
-          <p className="text-center py-12" style={{ color: 'var(--text-muted)' }}>
-            {t('common.loading')}
-          </p>
-        )}
-        {error && (
-          <p className="text-center py-12 text-red-400">{error}</p>
-        )}
+      {loading && (
+        <p className="text-center py-12" style={{ color: 'var(--text-muted)' }}>{t('common.loading')}</p>
+      )}
+      {error && <p className="text-center py-12 text-red-400">{error}</p>}
 
-        {!loading && !error && (
-          <table className="w-full text-left">
-            <thead>
-              <tr
-                className="text-xs font-bold uppercase tracking-wider"
-                style={{
-                  background: 'var(--bg-input)',
-                  borderBottom: '1px solid var(--border)',
-                  color: 'var(--text-muted)',
-                }}
-              >
-                <th className="px-3 py-3 text-center">{t('leaderboard.col.rank')}</th>
-                <th className="px-3 py-3">{t('leaderboard.col.player')}</th>
-                <th className="px-3 py-3 text-center">{t('leaderboard.col.points')}</th>
-                <th className="px-3 py-3 text-center">{t('leaderboard.col.correct')}</th>
-                <th className="px-3 py-3 text-center">{t('leaderboard.col.exact')}</th>
-                <th className="px-3 py-3 text-center">{t('leaderboard.col.scored')}</th>
-                <th className="px-3 py-3 text-center">{t('leaderboard.col.precision')}</th>
-              </tr>
-            </thead>
+      {!loading && !error && leaderboard.length === 0 && (
+        <p className="text-center py-12" style={{ color: 'var(--text-muted)' }}>{t('leaderboard.empty')}</p>
+      )}
 
-            <tbody>
-              {leaderboard.map((row, i) => {
-                const rank = i + 1;
+      {!loading && !error && leaderboard.length > 0 && (
+        <>
+          {/* ── Podium top 3 ── */}
+          <div className="flex items-end justify-center gap-4 mb-10 px-4">
+            {PODIUM.map((cfg, i) => {
+              const row = top3[cfg.rank - 1];
+              if (!row) return <div key={i} style={{ width: 110 }} />;
+              const isMe = currentUser && row.username === currentUser.username;
+              return (
+                <div key={row.user_id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: cfg.rank === 1 ? 130 : 110 }}>
+                  {/* Avatar */}
+                  <div style={{
+                    width: cfg.avatarSize, height: cfg.avatarSize, borderRadius: '50%',
+                    background: `${cfg.color}22`, border: `2.5px solid ${cfg.color}`,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontWeight: 900, fontSize: cfg.fontSize, color: cfg.color, marginBottom: 8,
+                  }}>
+                    {row.username.charAt(0).toUpperCase()}
+                  </div>
+                  {/* Nom */}
+                  <p style={{ margin: '0 0 3px', fontSize: 13, fontWeight: 700, color: 'var(--text)', textAlign: 'center', maxWidth: 110, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {row.username}
+                  </p>
+                  {isMe && (
+                    <p style={{ margin: '0 0 4px', fontSize: 10, color: 'var(--accent)', fontWeight: 700, textAlign: 'center' }}>
+                      {t('leaderboard.you')}
+                    </p>
+                  )}
+                  {/* Colonne podium */}
+                  <div style={{
+                    width: '100%', height: cfg.height,
+                    background: cfg.color, borderRadius: '10px 10px 0 0',
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2,
+                  }}>
+                    <span style={{ fontSize: 22 }}>{cfg.medal}</span>
+                    <span style={{ fontSize: 22, fontWeight: 900, color: '#fff', letterSpacing: '-0.02em' }}>{row.total_points}</span>
+                    <span style={{ fontSize: 10, fontWeight: 600, color: 'rgba(255,255,255,0.65)' }}>pts</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* ── Table rangs 4+ ── */}
+          {rest.length > 0 && (
+            <div className="card overflow-hidden">
+              {/* Header */}
+              <div style={{ display: 'grid', gridTemplateColumns: '56px 1fr 80px 80px 80px 80px 100px', padding: '10px 18px', background: 'var(--bg-input)', borderBottom: '1px solid var(--border)', fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.08em', color: 'var(--text-muted)' }}>
+                <span style={{ textAlign: 'center' }}>{t('leaderboard.col.rank')}</span>
+                <span>{t('leaderboard.col.player')}</span>
+                <span style={{ textAlign: 'center' }}>{t('leaderboard.col.points')}</span>
+                <span style={{ textAlign: 'center' }}>{t('leaderboard.col.correct')}</span>
+                <span style={{ textAlign: 'center' }}>{t('leaderboard.col.exact')}</span>
+                <span style={{ textAlign: 'center' }}>{t('leaderboard.col.scored')}</span>
+                <span style={{ textAlign: 'center' }}>{t('leaderboard.col.precision')}</span>
+              </div>
+              {/* Rows */}
+              {rest.map((row, i) => {
+                const rank = i + 4;
                 const isMe = currentUser && row.username === currentUser.username;
                 return (
-                  <tr
-                    key={row.user_id}
-                    className="border-b transition-all duration-150"
-                    style={{
-                      borderColor: 'var(--border)',
-                      background: isMe ? 'rgba(217,119,6,0.09)' : 'transparent',
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!isMe) e.currentTarget.style.background = 'var(--bg-input)';
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!isMe) e.currentTarget.style.background = 'transparent';
-                    }}
+                  <div key={row.user_id}
+                    style={{ display: 'grid', gridTemplateColumns: '56px 1fr 80px 80px 80px 80px 100px', alignItems: 'center', padding: '13px 18px', borderBottom: '1px solid var(--border)', background: isMe ? 'rgba(217,119,6,0.09)' : 'transparent', transition: 'background 0.15s' }}
+                    onMouseEnter={(e) => { if (!isMe) e.currentTarget.style.background = 'var(--bg-input)'; }}
+                    onMouseLeave={(e) => { if (!isMe) e.currentTarget.style.background = 'transparent'; }}
                   >
-                    <td className="px-3 py-4 text-center">
-                      <div className="flex justify-center">
-                        <MedalBadge rank={rank} />
-                      </div>
-                    </td>
-
-                    <td className="px-3 py-4">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-bold" style={{ color: 'var(--text)' }}>
-                          {row.username}
-                        </span>
-                        {isMe && (
-                          <span
-                            className="text-xs font-bold px-2 py-0.5 rounded-full"
-                            style={{ background: 'var(--accent)', color: '#000' }}
-                          >
-                            {t('leaderboard.you')}
-                          </span>
-                        )}
-                      </div>
-                    </td>
-
-                    <td className="px-3 py-4 text-center font-black text-xl" style={{ color: 'var(--accent)' }}>
-                      {row.total_points}
-                    </td>
-
-                    <td className="px-3 py-4 text-center" style={{ color: 'var(--text)' }}>
-                      {row.bon_prono}
-                    </td>
-
-                    <td className="px-3 py-4 text-center" style={{ color: 'var(--text)' }}>
-                      {row.score_exact}
-                    </td>
-
-                    <td className="px-3 py-4 text-center" style={{ color: 'var(--text-muted)' }}>
-                      {row.matchs_joues}
-                    </td>
-
-                    <td
-                      className="px-3 py-4 text-center font-semibold"
-                      style={{ color: Number(row.precision_pct) >= 50 ? 'var(--accent)' : 'var(--text-muted)' }}
-                    >
+                    <span style={{ textAlign: 'center', fontWeight: 700, fontSize: 14, color: 'var(--text-muted)' }}>{rank}</span>
+                    <span style={{ fontWeight: 600, color: 'var(--text)', display: 'flex', alignItems: 'center', gap: 7, minWidth: 0 }}>
+                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.username}</span>
+                      {isMe && <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 6, background: 'var(--accent-glow)', color: 'var(--accent)', flexShrink: 0 }}>{t('leaderboard.you')}</span>}
+                    </span>
+                    <span style={{ textAlign: 'center', fontWeight: 900, fontSize: 18, color: 'var(--accent)' }}>{row.total_points}</span>
+                    <span style={{ textAlign: 'center', color: 'var(--text)' }}>{row.bon_prono}</span>
+                    <span style={{ textAlign: 'center', color: 'var(--text)' }}>{row.score_exact}</span>
+                    <span style={{ textAlign: 'center', color: 'var(--text-muted)' }}>{row.matchs_joues}</span>
+                    <span style={{ textAlign: 'center', fontWeight: 700, color: Number(row.precision_pct) >= 50 ? 'var(--accent)' : 'var(--text-muted)' }}>
                       {row.matchs_joues > 0 ? `${row.precision_pct}%` : '—'}
-                    </td>
-                  </tr>
+                    </span>
+                  </div>
                 );
               })}
-
-              {leaderboard.length === 0 && (
-                <tr>
-                  <td colSpan="7" className="py-12 text-center" style={{ color: 'var(--text-muted)' }}>
-                    {t('leaderboard.empty')}
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        )}
-      </div>
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }

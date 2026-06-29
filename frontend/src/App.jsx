@@ -256,6 +256,13 @@ function NavBar({ dark, onToggle }) {
           <button className="theme-toggle" onClick={onToggle} title={dark ? 'Mode clair' : 'Mode nuit'}>
             {dark ? '☀️' : '🌙'}
           </button>
+          {isLoggedIn && user && (
+            <Link to="/profile" title={user.username}
+              className="w-9 h-9 rounded-full items-center justify-center font-black text-sm hidden md:flex shrink-0 transition-all duration-200"
+              style={{ background: 'var(--accent-glow)', border: '2px solid var(--accent)', color: 'var(--accent)' }}>
+              {user.username.charAt(0).toUpperCase()}
+            </Link>
+          )}
         </div>
       </div>
     </nav>
