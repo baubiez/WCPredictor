@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { API } from '../config.js';
 import { useLang } from '../LanguageContext.jsx';
+import KnockoutBracket from '../components/KnockoutBracket.jsx';
 
 /**
  * Détermine les codes des équipes qualifiées via le classement des meilleurs 3èmes.
@@ -59,6 +60,9 @@ export default function Stats() {
         <h2 className="text-3xl font-black" style={{ color: 'var(--text)' }}>{t('stats.title')}</h2>
         <p className="mt-1 text-sm" style={{ color: 'var(--text-muted)' }}>{t('stats.subtitle')}</p>
       </div>
+
+      {/* Bracket phases finales */}
+      <KnockoutBracket />
 
       {/* Classements */}
       <section>

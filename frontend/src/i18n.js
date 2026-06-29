@@ -169,6 +169,16 @@ const t = {
     'admin.empty.pending': 'Tous les matchs ont un résultat.',
     'admin.empty.finished':'Aucun match terminé.',
     'admin.btn.validate':  'Valider',
+
+    // Knockout bracket
+    'bracket.title':   'Tableau des phases finales',
+    'bracket.empty':   "La phase finale n'a pas encore commencé.",
+    'bracket.tbd':     'À déterminer',
+    'bracket.round32': 'Seizièmes',
+    'bracket.round16': 'Huitièmes',
+    'bracket.quarter': 'Quarts',
+    'bracket.semi':    'Demi-finales',
+    'bracket.final':   'Finale',
     'admin.saved':         '✓ Points calculés',
     'admin.scored':        '✓ Scoré',
 
@@ -347,6 +357,16 @@ const t = {
     'admin.empty.pending': 'All matches have a result.',
     'admin.empty.finished':'No finished matches.',
     'admin.btn.validate':  'Submit',
+
+    // Knockout bracket
+    'bracket.title':   'Knockout Bracket',
+    'bracket.empty':   "The knockout stage hasn't started yet.",
+    'bracket.tbd':     'TBD',
+    'bracket.round32': 'Rd of 32',
+    'bracket.round16': 'Rd of 16',
+    'bracket.quarter': 'Quarter-finals',
+    'bracket.semi':    'Semi-finals',
+    'bracket.final':   'Final',
     'admin.saved':         '✓ Points calculated',
     'admin.scored':        '✓ Scored',
 
@@ -533,6 +553,16 @@ const t = {
     'admin.empty.pending': 'Všetky zápasy majú výsledok.',
     'admin.empty.finished':'Žiadne ukončené zápasy.',
     'admin.btn.validate':  'Potvrdiť',
+
+    // Knockout bracket
+    'bracket.title':   'Tabuľka vyraďovacej fázy',
+    'bracket.empty':   'Vyraďovacia fáza ešte nezačala.',
+    'bracket.tbd':     'Neurčené',
+    'bracket.round32': 'Osemnaásťfinále',
+    'bracket.round16': 'Osemfinále',
+    'bracket.quarter': 'Štvrťfinále',
+    'bracket.semi':    'Semifinále',
+    'bracket.final':   'Finále',
     'admin.saved':         '✓ Body vypočítané',
     'admin.scored':        '✓ Vyhodnotené',
 
