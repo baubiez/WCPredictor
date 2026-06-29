@@ -299,3 +299,23 @@ FROM (VALUES
   ('Romelu Lukaku',      'BEL', 'FW')
 ) AS v(name, code_eq, pos)
 ON CONFLICT DO NOTHING;
+
+-- -----------------------------------------------------------------------------
+-- SCORE DE DÉPART DE BOTNARU — 3 points / 1 match joué
+-- On place le score EXACT d'un match déjà terminé comme pronostic de Botnaru :
+-- le scoring le maintient donc à 3 pts (pronostic exact) et il reste stable
+-- même après un futur scrape. Idempotent : ne s'applique que si Botnaru n'a
+-- encore aucun pronostic, et seulement s'il existe un match terminé.
+-- -----------------------------------------------------------------------------
+INSERT INTO predictions (user_id, match_id, pred_home, pred_away, points_awarded)
+SELECT b.id, m.id, m.home_score, m.away_score, 3
+FROM (SELECT id FROM users WHERE username = 'Botnaru') b
+CROSS JOIN LATERAL (
+    SELECT id, home_score, away_score
+    FROM matches
+    WHERE status = 'finished' AND home_score IS NOT NULL AND away_score IS NOT NULL
+    ORDER BY match_datetime DESC
+    LIMIT 1
+) m
+WHERE NOT EXISTS (SELECT 1 FROM predictions p WHERE p.user_id = b.id)
+ON CONFLICT (user_id, match_id) DO NOTHING;
