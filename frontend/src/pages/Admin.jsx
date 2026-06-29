@@ -255,24 +255,6 @@ export default function Admin() {
         </div>
       </div>
 
-      {/* Section seed Botnaru */}
-      <div className="card p-4 mb-6 flex flex-wrap items-center justify-between gap-4">
-        <div className="min-w-0">
-          <p className="font-semibold" style={{ color: 'var(--text)' }}>🤖 Score exact Botnaru</p>
-          <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
-            Insère un pronostic "score exact" (3 pts) pour Botnaru sur le premier match terminé sans prédiction de sa part.
-          </p>
-          {seedFlash && (
-            <p className={`text-xs mt-1.5 font-semibold ${seedFlash.isError ? 'text-red-400' : 'text-green-400'}`}>
-              {seedFlash.text}
-            </p>
-          )}
-        </div>
-        <button onClick={handleSeedBotnaru} className="btn btn-primary text-sm px-4 py-2 shrink-0">
-          Insérer score exact
-        </button>
-      </div>
-
       {/* Onglets */}
       <div className="flex gap-2 mb-6">
         {[

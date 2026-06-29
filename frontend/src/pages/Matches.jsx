@@ -390,7 +390,6 @@ export default function Matches() {
                         </div>
                         <div className="flex justify-between mt-1" style={{ color: 'var(--text-muted)', opacity: 0.7 }}>
                           <span>Dom. {hp}%</span>
-                          <span style={{ fontSize: 9, opacity: 0.6 }}>Distribution de Poisson</span>
                           <span>Ext. {ap}%</span>
                         </div>
                       </div>
