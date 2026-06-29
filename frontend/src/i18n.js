@@ -126,6 +126,7 @@ const t = {
     'matches.stage.quarter':  'Quarts de finale',
     'matches.stage.semi':     'Demi-finales',
     'matches.stage.final':    'Finale',
+    'matches.today':          "AUJOURD'HUI",
 
     // Stats
     'stats.title':         'Statistiques',
@@ -306,6 +307,7 @@ const t = {
     'matches.stage.quarter':  'Quarter-finals',
     'matches.stage.semi':     'Semi-finals',
     'matches.stage.final':    'Final',
+    'matches.today':          'TODAY',
 
     'stats.title':         'Statistics',
     'stats.subtitle':      'Group standings and top scorers',

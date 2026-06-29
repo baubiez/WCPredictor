@@ -8,6 +8,14 @@ import BotnaruCard from '../components/BotnaruCard.jsx';
 
 const STAGE_ORDER = ['group', 'round32', 'round16', 'quarter', 'semi', 'final'];
 
+const isToday = (dt) => {
+  const d = new Date(dt);
+  const now = new Date();
+  return d.getFullYear() === now.getFullYear()
+    && d.getMonth() === now.getMonth()
+    && d.getDate() === now.getDate();
+};
+
 const STATUS_STYLE = {
   scheduled: { bg: 'rgba(99,102,241,0.15)', color: '#818cf8', border: 'rgba(99,102,241,0.3)' },
   live:      { bg: 'rgba(34,197,94,0.15)',  color: '#22c55e', border: 'rgba(34,197,94,0.35)' },
@@ -289,10 +297,18 @@ export default function Matches() {
               return (
                 <div key={match.id} ref={isFirst ? firstCardRef : null} className="card overflow-hidden">
                   <div className="p-3 sm:p-4 flex flex-wrap sm:flex-nowrap items-center gap-3">
-                    <span className="text-xs font-bold px-2.5 py-1 rounded-full shrink-0 w-20 text-center"
-                      style={{ background: st.bg, color: st.color, border: `1px solid ${st.border}` }}>
-                      {STATUS_LABEL[match.status]}
-                    </span>
+                    <div className="flex flex-col items-center gap-1 shrink-0">
+                      <span className="text-xs font-bold px-2.5 py-1 rounded-full w-20 text-center"
+                        style={{ background: st.bg, color: st.color, border: `1px solid ${st.border}` }}>
+                        {STATUS_LABEL[match.status]}
+                      </span>
+                      {match.status === 'scheduled' && isToday(match.match_datetime) && (
+                        <span className="animate-pulse text-xs font-black px-2 py-0.5 rounded-full w-20 text-center tracking-wide"
+                          style={{ background: 'rgba(251,191,36,0.15)', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.5)' }}>
+                          {t('matches.today')}
+                        </span>
+                      )}
+                    </div>
 
                     <div className="flex-1 flex items-center justify-center gap-3 min-w-0">
                       <span className="font-semibold text-right truncate w-24 sm:w-32 flex items-center justify-end gap-1.5" style={{ color: 'var(--text)' }}>
