@@ -25,19 +25,22 @@ function BotBadge() {
   );
 }
 
-/** Avatar — remplace l'initiale par 🤖 pour Botnaru */
-function Avatar({ username, size, fontSize, borderColor }) {
+/** Avatar — image pixel art pour Botnaru, initiale pour les humains */
+function Avatar({ username, size, borderColor }) {
   const isBot = username === BOT_NAME;
   return (
     <div style={{
       width: size, height: size, borderRadius: '50%',
-      background: isBot ? 'rgba(167,139,250,0.15)' : `${borderColor}22`,
       border: `2.5px solid ${isBot ? BOT_COLOR : borderColor}`,
+      boxShadow: isBot ? `0 0 14px rgba(167,139,250,0.45)` : 'none',
+      overflow: 'hidden', flexShrink: 0,
+      background: isBot ? 'rgba(167,139,250,0.1)' : `${borderColor}22`,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
-      fontWeight: 900, fontSize, color: isBot ? BOT_COLOR : borderColor,
-      boxShadow: isBot ? `0 0 12px rgba(167,139,250,0.35)` : 'none',
     }}>
-      {isBot ? '🤖' : username.charAt(0).toUpperCase()}
+      {isBot
+        ? <img src="/botnaru.png" alt="Botnaru" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 10%' }} />
+        : <span style={{ fontWeight: 900, fontSize: size * 0.4, color: borderColor }}>{username.charAt(0).toUpperCase()}</span>
+      }
     </div>
   );
 }
@@ -96,7 +99,7 @@ export default function Leaderboard() {
               return (
                 <div key={row.user_id}
                   style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: cfg.rank === 1 ? 130 : 110 }}>
-                  <Avatar username={row.username} size={cfg.avatarSize} fontSize={isBot ? cfg.fontSize - 2 : cfg.fontSize} borderColor={podiumColor} />
+                  <Avatar username={row.username} size={cfg.avatarSize} borderColor={podiumColor} />
                   <div style={{ marginBottom: 3, height: 6 }} />
                   <p style={{ margin: '0 0 2px', fontSize: 13, fontWeight: 700, color: isBot ? BOT_COLOR : 'var(--text)', textAlign: 'center', maxWidth: 110, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {row.username}
@@ -117,7 +120,10 @@ export default function Leaderboard() {
                     display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2,
                     boxShadow: isBot ? `0 -4px 20px rgba(167,139,250,0.4)` : 'none',
                   }}>
-                    <span style={{ fontSize: 22 }}>{isBot ? '🤖' : cfg.medal}</span>
+                    {isBot
+                      ? <img src="/botnaru.png" alt="Botnaru" style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover', objectPosition: 'center 10%', border: '2px solid rgba(255,255,255,0.6)' }} />
+                      : <span style={{ fontSize: 22 }}>{cfg.medal}</span>
+                    }
                     <span style={{ fontSize: 22, fontWeight: 900, color: '#fff', letterSpacing: '-0.02em' }}>{row.total_points}</span>
                     <span style={{ fontSize: 10, fontWeight: 600, color: 'rgba(255,255,255,0.65)' }}>pts</span>
                   </div>
