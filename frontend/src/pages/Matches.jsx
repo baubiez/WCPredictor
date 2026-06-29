@@ -374,7 +374,7 @@ export default function Matches() {
                         {/* Ligne 1 : label + score prédit + proba */}
                         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-2">
                           <span className="font-bold flex items-center gap-1.5" style={{ color: '#a78bfa' }}>
-                            <img src="/botnaru.png" alt="Botnaru" style={{ width: 16, height: 16, borderRadius: '50%', objectFit: 'cover', objectPosition: 'top' }} />
+                            <img src="/botnaru.png" alt="Botnaru" style={{ width: 16, height: 16, borderRadius: '50%', objectFit: 'cover', objectPosition: 'center' }} />
                             Botnaru
                           </span>
                           <span className="font-black" style={{ color: 'var(--accent)' }}>{bot.pred_home}–{bot.pred_away}</span>

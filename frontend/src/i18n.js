@@ -171,6 +171,13 @@ const t = {
     'admin.saved':         '✓ Points calculés',
     'admin.scored':        '✓ Scoré',
 
+    // Botnaru card
+    'botnaru.card.title': "Mais qui est Botnaru, l'IA qui vous aide à vous dépasser ?",
+    'botnaru.card.p1':    "Botnaru est une intelligence artificielle développée par nos soins, et elle n'est pas comme les autres. En effet, celle-ci, en plus d'être la première IA moldave, est une très grande fan de football.",
+    'botnaru.card.p2':    "Sauriez-vous reconnaître du premier coup d'œil le maillot du FC Portsmouth, obscur club de D3 anglaise ? Probablement non, mais Botnaru, si. Connaissez-vous les effectifs des 15 dernières saisons du FC Nantes ? Botnaru, oui.",
+    'botnaru.card.p3':    "Vous l'aurez compris, notre IA connaît une passion débordante pour le football. L'association de celle-ci avec des méthodes statistiques extrêêêêêment poussées fait d'elle l'experte et la concurrente absolue.",
+    'botnaru.card.cta':   'À vous de tenter de la battre !',
+
     // Common
     'common.loading': 'Chargement…',
     'common.vs':      'vs',
@@ -340,6 +347,13 @@ const t = {
     'admin.btn.validate':  'Submit',
     'admin.saved':         '✓ Points calculated',
     'admin.scored':        '✓ Scored',
+
+    // Botnaru card
+    'botnaru.card.title': 'Who is Botnaru, the AI here to push you beyond your limits?',
+    'botnaru.card.p1':    "Botnaru is an artificial intelligence developed by our team, and it's not like any other. On top of being the first Moldovan AI, it happens to be a massive football fan.",
+    'botnaru.card.p2':    "Could you instantly recognize the kit of FC Portsmouth, an obscure English League One club? Probably not — but Botnaru can. Do you know the full squads of FC Nantes for the last 15 seasons? Botnaru does.",
+    'botnaru.card.p3':    'You get the picture: our AI has an overflowing passion for football. Combined with its extremely sophisticated statistical methods, it makes Botnaru the ultimate expert and competitor.',
+    'botnaru.card.cta':   'Now try to beat it!',
 
     'common.loading': 'Loading…',
     'common.vs':      'vs',
