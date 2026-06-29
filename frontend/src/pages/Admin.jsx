@@ -17,6 +17,9 @@ export default function Admin() {
   const [scrapeLast, setScrapeLast] = useState(null);
   const pollRef = useRef(null);
 
+  const [botRunning, setBotRunning] = useState(false);
+  const [botFlash, setBotFlash] = useState(null);
+
   useEffect(() => {
     if (!user || user.role !== 'admin') navigate('/');
   }, []);
@@ -82,6 +85,27 @@ export default function Admin() {
       setScrapeRunning(false);
       setScrapeFlash({ text: err.message, isError: true });
       setTimeout(() => setScrapeFlash(null), 6000);
+    }
+  };
+
+  const handleGenerateBot = async () => {
+    setBotRunning(true);
+    setBotFlash(null);
+    try {
+      const res = await authFetch(`${API}/api/admin/generate-bot-predictions`, { method: 'POST' });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Erreur');
+      setBotFlash({
+        text: data.inserted?.length
+          ? `✓ ${data.inserted.length} prédiction(s) générée(s)`
+          : '✓ ' + data.message,
+        isError: false,
+      });
+    } catch (err) {
+      setBotFlash({ text: err.message, isError: true });
+    } finally {
+      setBotRunning(false);
+      setTimeout(() => setBotFlash(null), 8000);
     }
   };
 
@@ -162,6 +186,29 @@ export default function Admin() {
             disabled={scrapeRunning}
             className="btn btn-primary text-sm px-4 py-2">
             {scrapeRunning ? '⏳ Import en cours…' : '↻ Lancer le scraping'}
+          </button>
+        </div>
+      </div>
+
+      {/* Section Botnaru */}
+      <div className="card p-4 mb-6 flex flex-wrap items-center justify-between gap-4">
+        <div className="min-w-0">
+          <p className="font-semibold" style={{ color: 'var(--text)' }}>🤖 Prédictions Botnaru</p>
+          <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
+            Génère automatiquement les prédictions Botnaru pour tous les matchs à venir sans prédiction (probabilités Elo).
+          </p>
+        </div>
+        <div className="flex items-center gap-3 shrink-0">
+          {botFlash && (
+            <span className={`text-xs ${botFlash.isError ? 'text-red-400' : 'text-green-400'}`}>
+              {botFlash.text}
+            </span>
+          )}
+          <button
+            onClick={handleGenerateBot}
+            disabled={botRunning}
+            className="btn btn-primary text-sm px-4 py-2">
+            {botRunning ? '⏳ Génération…' : '⚡ Générer prédictions'}
           </button>
         </div>
       </div>
