@@ -198,29 +198,34 @@ export default function Dashboard() {
             </div>
             <div>
               {leaderboard.slice(0, 6).map((r, i) => {
-                const isMe = r.username === user.username;
+                const isMe  = r.username === user.username;
+                const isBot = r.username === 'Botnaru';
+                const bg    = isBot ? 'rgba(167,139,250,0.07)' : isMe ? 'var(--accent-glow)' : 'transparent';
                 return (
                   <div key={r.user_id}
                     className="flex items-center gap-2.5 px-4 py-2.5 border-b transition-colors"
-                    style={{
-                      borderColor: 'var(--border)',
-                      background: isMe ? 'var(--accent-glow)' : 'transparent',
-                    }}
-                    onMouseEnter={(e) => { if (!isMe) e.currentTarget.style.background = 'var(--bg-input)'; }}
-                    onMouseLeave={(e) => { if (!isMe) e.currentTarget.style.background = 'transparent'; }}
+                    style={{ borderColor: 'var(--border)', background: bg }}
+                    onMouseEnter={(e) => { if (!isMe && !isBot) e.currentTarget.style.background = 'var(--bg-input)'; }}
+                    onMouseLeave={(e) => { if (!isMe && !isBot) e.currentTarget.style.background = bg; }}
                   >
                     <span className="w-6 text-center text-sm shrink-0">
-                      {MEDAL[i + 1] || <span className="text-xs font-bold" style={{ color: 'var(--text-muted)' }}>{i + 1}</span>}
+                      {isBot
+                        ? '🤖'
+                        : (MEDAL[i + 1] || <span className="text-xs font-bold" style={{ color: 'var(--text-muted)' }}>{i + 1}</span>)}
                     </span>
-                    <span className="flex-1 text-sm font-semibold truncate" style={{ color: 'var(--text)' }}>
+                    <span className="flex-1 text-sm truncate flex items-center gap-1.5"
+                      style={{ fontWeight: isBot ? 800 : 600, color: isBot ? '#a78bfa' : 'var(--text)' }}>
                       {r.username}
-                      {isMe && (
-                        <span className="ml-1.5 text-xs" style={{ color: 'var(--accent)' }}>
-                          · {t('leaderboard.you')}
+                      {isBot && (
+                        <span style={{ fontSize: 9, fontWeight: 800, padding: '1px 5px', borderRadius: 4, background: 'rgba(167,139,250,0.18)', color: '#a78bfa', border: '1px solid rgba(167,139,250,0.35)', flexShrink: 0 }}>
+                          IA
                         </span>
                       )}
+                      {isMe && !isBot && (
+                        <span className="text-xs" style={{ color: 'var(--accent)' }}>· {t('leaderboard.you')}</span>
+                      )}
                     </span>
-                    <span className="font-black text-base shrink-0" style={{ color: 'var(--accent)' }}>
+                    <span className="font-black text-base shrink-0" style={{ color: isBot ? '#a78bfa' : 'var(--accent)' }}>
                       {r.total_points}
                     </span>
                   </div>

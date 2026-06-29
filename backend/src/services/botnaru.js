@@ -190,15 +190,43 @@ function predictMatch(homeName, awayName, stats, avgGoals) {
 }
 
 /**
+ * Trouve ou crée le compte utilisateur Botnaru.
+ * Le hash est aléatoire et non mémorisé → connexion impossible via ce compte.
+ */
+async function ensureBotnaruUser(pool) {
+  const { rows } = await pool.query(`SELECT id FROM users WHERE username = 'Botnaru'`);
+  if (rows.length > 0) return rows[0].id;
+
+  const bcrypt  = require('bcryptjs');
+  const crypto  = require('crypto');
+  const locked  = await bcrypt.hash(crypto.randomBytes(32).toString('hex'), 12);
+  const { rows: created } = await pool.query(
+    `INSERT INTO users (username, email, password_hash, role)
+     VALUES ('Botnaru', 'botnaru@wcpredictor.ai', $1, 'user')
+     ON CONFLICT (username) DO UPDATE SET username = EXCLUDED.username
+     RETURNING id`,
+    [locked]
+  );
+  return created[0].id;
+}
+
+/**
  * Génère et sauvegarde les prédictions Botnaru pour tous les matchs
  * scheduled sans prédiction existante.
+ *
+ * Sauvegarde dans DEUX tables :
+ *  - bot_predictions  → probabilités + xG (affichage dans Matches)
+ *  - predictions      → score prédit avec user_id Botnaru (classement)
  *
  * @param {Pool} pool — pool PostgreSQL
  * @param {{ upsert?: boolean }} opts — si upsert=true, écrase les prédictions existantes
  * @returns {Array} liste des prédictions insérées
  */
 async function generateAllPredictions(pool, opts = {}) {
-  const { stats, avgGoals } = await computeTeamStats(pool);
+  const [{ stats, avgGoals }, botUserId] = await Promise.all([
+    computeTeamStats(pool),
+    ensureBotnaruUser(pool),
+  ]);
 
   const whereClause = opts.upsert
     ? ''
@@ -220,6 +248,7 @@ async function generateAllPredictions(pool, opts = {}) {
   for (const m of matches) {
     const pred = predictMatch(m.home_team, m.away_team, stats, avgGoals);
 
+    // 1. Sauvegarde dans bot_predictions (probabilités + xG)
     await pool.query(`
       INSERT INTO bot_predictions
         (match_id, pred_home, pred_away, prob_home_win, prob_draw, prob_away_win, xg_home, xg_away)
@@ -236,12 +265,22 @@ async function generateAllPredictions(pool, opts = {}) {
         pred.prob_home_win, pred.prob_draw, pred.prob_away_win,
         pred.xg_home, pred.xg_away]);
 
+    // 2. Sauvegarde dans predictions (classement)
+    await pool.query(`
+      INSERT INTO predictions (user_id, match_id, pred_home, pred_away)
+      VALUES ($1, $2, $3, $4)
+      ON CONFLICT (user_id, match_id) DO UPDATE SET
+        pred_home      = EXCLUDED.pred_home,
+        pred_away      = EXCLUDED.pred_away,
+        points_awarded = NULL
+    `, [botUserId, m.id, pred.pred_home, pred.pred_away]);
+
     inserted.push({
-      match:    `${m.home_team} vs ${m.away_team}`,
-      score:    `${pred.pred_home}-${pred.pred_away}`,
-      xg:       `${pred.xg_home} – ${pred.xg_away}`,
-      probs:    `${Math.round(pred.prob_home_win*100)}% / ${Math.round(pred.prob_draw*100)}% / ${Math.round(pred.prob_away_win*100)}%`,
-      method:   stats.size > 0 ? 'Poisson' : 'Elo-fallback',
+      match:  `${m.home_team} vs ${m.away_team}`,
+      score:  `${pred.pred_home}-${pred.pred_away}`,
+      xg:     `${pred.xg_home} – ${pred.xg_away}`,
+      probs:  `${Math.round(pred.prob_home_win*100)}% / ${Math.round(pred.prob_draw*100)}% / ${Math.round(pred.prob_away_win*100)}%`,
+      method: stats.size > 0 ? 'Poisson' : 'Elo-fallback',
     });
   }
 

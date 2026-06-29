@@ -2,11 +2,45 @@ import { useState, useEffect } from 'react';
 import { API } from '../config.js';
 import { useLang } from '../LanguageContext.jsx';
 
+const BOT_NAME = 'Botnaru';
+const BOT_COLOR = '#a78bfa'; // violet IA
+
 const PODIUM = [
   { rank: 2, medal: '🥈', color: '#7C7C94', height: 88,  avatarSize: 50, fontSize: 18 },
   { rank: 1, medal: '🥇', color: '#C8A02A', height: 120, avatarSize: 62, fontSize: 24 },
   { rank: 3, medal: '🥉', color: '#A0624A', height: 64,  avatarSize: 50, fontSize: 18 },
 ];
+
+/** Badge violet "🤖 IA" affiché à côté du nom de Botnaru */
+function BotBadge() {
+  return (
+    <span style={{
+      fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 5,
+      background: 'rgba(167,139,250,0.18)', color: BOT_COLOR,
+      border: '1px solid rgba(167,139,250,0.4)', flexShrink: 0,
+      letterSpacing: '.03em',
+    }}>
+      🤖 IA
+    </span>
+  );
+}
+
+/** Avatar — remplace l'initiale par 🤖 pour Botnaru */
+function Avatar({ username, size, fontSize, borderColor }) {
+  const isBot = username === BOT_NAME;
+  return (
+    <div style={{
+      width: size, height: size, borderRadius: '50%',
+      background: isBot ? 'rgba(167,139,250,0.15)' : `${borderColor}22`,
+      border: `2.5px solid ${isBot ? BOT_COLOR : borderColor}`,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      fontWeight: 900, fontSize, color: isBot ? BOT_COLOR : borderColor,
+      boxShadow: isBot ? `0 0 12px rgba(167,139,250,0.35)` : 'none',
+    }}>
+      {isBot ? '🤖' : username.charAt(0).toUpperCase()}
+    </div>
+  );
+}
 
 export default function Leaderboard() {
   const [leaderboard, setLeaderboard] = useState([]);
@@ -26,8 +60,8 @@ export default function Leaderboard() {
       .finally(() => setLoading(false));
   }, []);
 
-  const top3  = leaderboard.slice(0, 3);
-  const rest  = leaderboard.slice(3);
+  const top3 = leaderboard.slice(0, 3);
+  const rest = leaderboard.slice(3);
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -44,7 +78,6 @@ export default function Leaderboard() {
         <p className="text-center py-12" style={{ color: 'var(--text-muted)' }}>{t('common.loading')}</p>
       )}
       {error && <p className="text-center py-12 text-red-400">{error}</p>}
-
       {!loading && !error && leaderboard.length === 0 && (
         <p className="text-center py-12" style={{ color: 'var(--text-muted)' }}>{t('leaderboard.empty')}</p>
       )}
@@ -56,34 +89,35 @@ export default function Leaderboard() {
             {PODIUM.map((cfg, i) => {
               const row = top3[cfg.rank - 1];
               if (!row) return <div key={i} style={{ width: 110 }} />;
-              const isMe = currentUser && row.username === currentUser.username;
+              const isMe  = currentUser && row.username === currentUser.username;
+              const isBot = row.username === BOT_NAME;
+              const podiumColor = isBot ? BOT_COLOR : cfg.color;
+
               return (
-                <div key={row.user_id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: cfg.rank === 1 ? 130 : 110 }}>
-                  {/* Avatar */}
-                  <div style={{
-                    width: cfg.avatarSize, height: cfg.avatarSize, borderRadius: '50%',
-                    background: `${cfg.color}22`, border: `2.5px solid ${cfg.color}`,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontWeight: 900, fontSize: cfg.fontSize, color: cfg.color, marginBottom: 8,
-                  }}>
-                    {row.username.charAt(0).toUpperCase()}
-                  </div>
-                  {/* Nom */}
-                  <p style={{ margin: '0 0 3px', fontSize: 13, fontWeight: 700, color: 'var(--text)', textAlign: 'center', maxWidth: 110, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <div key={row.user_id}
+                  style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: cfg.rank === 1 ? 130 : 110 }}>
+                  <Avatar username={row.username} size={cfg.avatarSize} fontSize={isBot ? cfg.fontSize - 2 : cfg.fontSize} borderColor={podiumColor} />
+                  <div style={{ marginBottom: 3, height: 6 }} />
+                  <p style={{ margin: '0 0 2px', fontSize: 13, fontWeight: 700, color: isBot ? BOT_COLOR : 'var(--text)', textAlign: 'center', maxWidth: 110, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {row.username}
                   </p>
-                  {isMe && (
+                  {isBot && (
+                    <p style={{ margin: '0 0 4px', fontSize: 10, color: BOT_COLOR, fontWeight: 700, textAlign: 'center', opacity: 0.85 }}>
+                      🤖 IA · Poisson
+                    </p>
+                  )}
+                  {isMe && !isBot && (
                     <p style={{ margin: '0 0 4px', fontSize: 10, color: 'var(--accent)', fontWeight: 700, textAlign: 'center' }}>
                       {t('leaderboard.you')}
                     </p>
                   )}
-                  {/* Colonne podium */}
                   <div style={{
                     width: '100%', height: cfg.height,
-                    background: cfg.color, borderRadius: '10px 10px 0 0',
+                    background: podiumColor, borderRadius: '10px 10px 0 0',
                     display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2,
+                    boxShadow: isBot ? `0 -4px 20px rgba(167,139,250,0.4)` : 'none',
                   }}>
-                    <span style={{ fontSize: 22 }}>{cfg.medal}</span>
+                    <span style={{ fontSize: 22 }}>{isBot ? '🤖' : cfg.medal}</span>
                     <span style={{ fontSize: 22, fontWeight: 900, color: '#fff', letterSpacing: '-0.02em' }}>{row.total_points}</span>
                     <span style={{ fontSize: 10, fontWeight: 600, color: 'rgba(255,255,255,0.65)' }}>pts</span>
                   </div>
@@ -107,24 +141,41 @@ export default function Leaderboard() {
               </div>
               {/* Rows */}
               {rest.map((row, i) => {
-                const rank = i + 4;
-                const isMe = currentUser && row.username === currentUser.username;
+                const rank  = i + 4;
+                const isMe  = currentUser && row.username === currentUser.username;
+                const isBot = row.username === BOT_NAME;
+
+                const rowBg = isBot
+                  ? 'rgba(167,139,250,0.07)'
+                  : isMe
+                    ? 'rgba(217,119,6,0.09)'
+                    : 'transparent';
+
                 return (
                   <div key={row.user_id}
-                    style={{ display: 'grid', gridTemplateColumns: '56px 1fr 80px 80px 80px 80px 100px', alignItems: 'center', padding: '13px 18px', borderBottom: '1px solid var(--border)', background: isMe ? 'rgba(217,119,6,0.09)' : 'transparent', transition: 'background 0.15s' }}
-                    onMouseEnter={(e) => { if (!isMe) e.currentTarget.style.background = 'var(--bg-input)'; }}
-                    onMouseLeave={(e) => { if (!isMe) e.currentTarget.style.background = 'transparent'; }}
+                    style={{ display: 'grid', gridTemplateColumns: '56px 1fr 80px 80px 80px 80px 100px', alignItems: 'center', padding: '13px 18px', borderBottom: '1px solid var(--border)', background: rowBg, transition: 'background 0.15s' }}
+                    onMouseEnter={(e) => { if (!isMe && !isBot) e.currentTarget.style.background = 'var(--bg-input)'; }}
+                    onMouseLeave={(e) => { if (!isMe && !isBot) e.currentTarget.style.background = 'transparent'; }}
                   >
-                    <span style={{ textAlign: 'center', fontWeight: 700, fontSize: 14, color: 'var(--text-muted)' }}>{rank}</span>
-                    <span style={{ fontWeight: 600, color: 'var(--text)', display: 'flex', alignItems: 'center', gap: 7, minWidth: 0 }}>
-                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.username}</span>
-                      {isMe && <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 6, background: 'var(--accent-glow)', color: 'var(--accent)', flexShrink: 0 }}>{t('leaderboard.you')}</span>}
+                    <span style={{ textAlign: 'center', fontWeight: 700, fontSize: 14, color: isBot ? BOT_COLOR : 'var(--text-muted)' }}>
+                      {isBot ? '🤖' : rank}
                     </span>
-                    <span style={{ textAlign: 'center', fontWeight: 900, fontSize: 18, color: 'var(--accent)' }}>{row.total_points}</span>
+                    <span style={{ fontWeight: isBot ? 800 : 600, color: isBot ? BOT_COLOR : 'var(--text)', display: 'flex', alignItems: 'center', gap: 7, minWidth: 0 }}>
+                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {row.username}
+                      </span>
+                      {isBot && <BotBadge />}
+                      {isMe && !isBot && (
+                        <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 6, background: 'var(--accent-glow)', color: 'var(--accent)', flexShrink: 0 }}>
+                          {t('leaderboard.you')}
+                        </span>
+                      )}
+                    </span>
+                    <span style={{ textAlign: 'center', fontWeight: 900, fontSize: 18, color: isBot ? BOT_COLOR : 'var(--accent)' }}>{row.total_points}</span>
                     <span style={{ textAlign: 'center', color: 'var(--text)' }}>{row.bon_prono}</span>
                     <span style={{ textAlign: 'center', color: 'var(--text)' }}>{row.score_exact}</span>
                     <span style={{ textAlign: 'center', color: 'var(--text-muted)' }}>{row.matchs_joues}</span>
-                    <span style={{ textAlign: 'center', fontWeight: 700, color: Number(row.precision_pct) >= 50 ? 'var(--accent)' : 'var(--text-muted)' }}>
+                    <span style={{ textAlign: 'center', fontWeight: 700, color: Number(row.precision_pct) >= 50 ? (isBot ? BOT_COLOR : 'var(--accent)') : 'var(--text-muted)' }}>
                       {row.matchs_joues > 0 ? `${row.precision_pct}%` : '—'}
                     </span>
                   </div>
