@@ -1,9 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { API, authFetch } from '../config.js';
+import { useLang } from '../LanguageContext.jsx';
+
+const LOCALE_MAP = { fr: 'fr-FR', en: 'en-GB', sk: 'sk-SK' };
 
 export default function Admin() {
   const navigate = useNavigate();
+  const { t, lang } = useLang();
   const user = (() => { try { return JSON.parse(localStorage.getItem('user')); } catch { return null; } })();
 
   const [matches, setMatches] = useState([]);
@@ -60,24 +64,22 @@ export default function Admin() {
       } else {
         setScrapeRunning(false);
         if (d.last?.success) {
-          setScrapeFlash({ text: '✓ Import terminé avec succès', isError: false });
+          setScrapeFlash({ text: t('admin.import.done'), isError: false });
           fetch(`${API}/api/matches`).then((r2) => r2.json()).then((d2) => setMatches(d2.matches || []));
         } else if (d.last?.success === false) {
-          setScrapeFlash({ text: `Erreur : ${d.last.error}`, isError: true });
+          setScrapeFlash({ text: d.last.error, isError: true });
         }
         setTimeout(() => setScrapeFlash(null), 6000);
       }
     } catch {
       setScrapeRunning(false);
-      setScrapeFlash({ text: 'Service de scraping indisponible', isError: true });
+      setScrapeFlash({ text: t('admin.import.unavailable'), isError: true });
       setTimeout(() => setScrapeFlash(null), 6000);
     }
   };
 
   const handleScrape = async () => {
-    if (!window.confirm(
-      'Lancer l\'import depuis la source externe ?\n\nLes matchs et équipes seront mis à jour. Les pronostics existants sont conservés.'
-    )) return;
+    if (!window.confirm(t('admin.import.confirm'))) return;
     setScrapeRunning(true);
     setScrapeFlash(null);
     try {
@@ -172,7 +174,7 @@ export default function Admin() {
           ? { ...m, status: 'finished', home_score: Number(s.home), away_score: Number(s.away) }
           : m)
       );
-      showFlash(matchId, '✓ Points calculés', false);
+      showFlash(matchId, t('admin.saved'), false);
     } catch (err) {
       showFlash(matchId, err.message, true);
     } finally {
@@ -194,24 +196,24 @@ export default function Admin() {
   return (
     <div className="max-w-4xl mx-auto">
       <div className="mb-6">
-        <h2 className="text-3xl font-black" style={{ color: 'var(--text)' }}>Interface Admin</h2>
+        <h2 className="text-3xl font-black" style={{ color: 'var(--text)' }}>{t('admin.title')}</h2>
         <p className="mt-1 text-sm" style={{ color: 'var(--text-muted)' }}>
-          Saisie des résultats — les points sont calculés automatiquement
+          {t('admin.subtitle')}
         </p>
       </div>
 
       {/* Section scraping */}
       <div className="card p-4 mb-6 flex flex-wrap items-center justify-between gap-4">
         <div className="min-w-0">
-          <p className="font-semibold" style={{ color: 'var(--text)' }}>Import des données</p>
+          <p className="font-semibold" style={{ color: 'var(--text)' }}>{t('admin.import.title')}</p>
           <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
-            Met à jour matchs, équipes et buteurs depuis la source externe. Les pronostics existants sont conservés.
+            {t('admin.import.desc')}
           </p>
           {scrapeLast && (
             <p className="text-xs mt-1" style={{ color: scrapeLast.success ? 'var(--accent)' : '#f87171' }}>
-              Dernier import : {scrapeLast.success ? '✓ succès' : '✗ ' + scrapeLast.error}
+              {t('admin.import.last')} {scrapeLast.success ? t('admin.import.success') : '✗ ' + scrapeLast.error}
               {scrapeLast.trigger ? ` (${scrapeLast.trigger})` : ''}
-              {' — '}{new Date(scrapeLast.at).toLocaleString('fr-FR')}
+              {' — '}{new Date(scrapeLast.at).toLocaleString(LOCALE_MAP[lang] || 'fr-FR')}
             </p>
           )}
         </div>
@@ -225,7 +227,7 @@ export default function Admin() {
             onClick={handleScrape}
             disabled={scrapeRunning}
             className="btn btn-primary text-sm px-4 py-2">
-            {scrapeRunning ? '⏳ Import en cours…' : '↻ Lancer le scraping'}
+            {scrapeRunning ? t('admin.import.running') : t('admin.import.btn')}
           </button>
         </div>
       </div>
@@ -234,10 +236,9 @@ export default function Admin() {
       <div className="card p-4 mb-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0">
-            <p className="font-semibold" style={{ color: 'var(--text)' }}>🤖 Prédictions Botnaru — Poisson</p>
+            <p className="font-semibold" style={{ color: 'var(--text)' }}>{t('admin.bot.title')}</p>
             <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
-              Calcule les probabilités et scores via la distribution de Poisson (attaque/défense des matchs joués).
-              "Recalculer" écrase les prédictions existantes.
+              {t('admin.bot.desc')}
             </p>
             {botFlash && (
               <p className={`text-xs mt-2 font-semibold ${botFlash.isError ? 'text-red-400' : 'text-green-400'}`}>
@@ -264,14 +265,14 @@ export default function Admin() {
               onClick={() => handleGenerateBot(false)}
               disabled={botRunning}
               className="btn btn-primary text-sm px-4 py-2">
-              {botRunning ? '⏳…' : '⚡ Générer'}
+              {botRunning ? t('admin.bot.running') : t('admin.bot.generate')}
             </button>
             <button
               onClick={() => handleGenerateBot(true)}
               disabled={botRunning}
               className="btn text-sm px-4 py-2"
               style={{ background: 'var(--bg-input)', border: '1px solid var(--border)', color: 'var(--text)' }}>
-              ↻ Recalculer
+              {t('admin.bot.recalculate')}
             </button>
           </div>
         </div>
@@ -279,14 +280,14 @@ export default function Admin() {
 
       {/* Section gestion des rôles */}
       <div className="card p-4 mb-6">
-        <p className="font-semibold mb-1" style={{ color: 'var(--text)' }}>👤 Gestion des rôles</p>
+        <p className="font-semibold mb-1" style={{ color: 'var(--text)' }}>{t('admin.roles.title')}</p>
         <p className="text-xs mb-3" style={{ color: 'var(--text-muted)' }}>
-          Promouvoir ou rétrograder un utilisateur.
+          {t('admin.roles.desc')}
         </p>
         <div className="flex flex-wrap items-center gap-2">
           <input
             type="text"
-            placeholder="Nom d'utilisateur"
+            placeholder={t('admin.roles.placeholder')}
             value={roleUsername}
             onChange={(e) => setRoleUsername(e.target.value)}
             className="flex-1 min-w-40 text-sm px-3 py-2 rounded-lg"
@@ -296,14 +297,14 @@ export default function Admin() {
             onClick={() => handleSetRole('admin')}
             disabled={!roleUsername.trim()}
             className="btn btn-primary text-sm px-4 py-2">
-            → Admin
+            {t('admin.roles.set_admin')}
           </button>
           <button
             onClick={() => handleSetRole('user')}
             disabled={!roleUsername.trim()}
             className="btn text-sm px-4 py-2"
             style={{ background: 'var(--bg-input)', border: '1px solid var(--border)', color: 'var(--text)' }}>
-            → User
+            {t('admin.roles.set_user')}
           </button>
         </div>
         {roleFlash && (
@@ -316,20 +317,19 @@ export default function Admin() {
       {/* Onglets */}
       <div className="flex gap-2 mb-6">
         {[
-          { key: 'pending',  label: `À saisir (${pending.length})` },
-          { key: 'finished', label: `Terminés (${finished.length})` },
-        ].map((t) => (
-          <button key={t.key} onClick={() => setTab(t.key)}
-            className={`pill${tab === t.key ? ' active' : ''}`}
-            style={tab === t.key ? {} : {}}>
-            {t.label}
+          { key: 'pending',  label: `${t('admin.tab.pending')} (${pending.length})` },
+          { key: 'finished', label: `${t('admin.tab.finished')} (${finished.length})` },
+        ].map((tab_item) => (
+          <button key={tab_item.key} onClick={() => setTab(tab_item.key)}
+            className={`pill${tab === tab_item.key ? ' active' : ''}`}>
+            {tab_item.label}
           </button>
         ))}
       </div>
 
       {displayed.length === 0 && (
         <p className="text-center py-12" style={{ color: 'var(--text-muted)' }}>
-          {tab === 'pending' ? 'Tous les matchs ont un résultat.' : 'Aucun match terminé.'}
+          {tab === 'pending' ? t('admin.empty.pending') : t('admin.empty.finished')}
         </p>
       )}
 
@@ -359,7 +359,7 @@ export default function Admin() {
 
               {/* Date */}
               <span className="text-xs hidden md:block w-28 shrink-0 text-right" style={{ color: 'var(--text-muted)' }}>
-                {new Date(match.match_datetime).toLocaleString('fr-FR', {
+                {new Date(match.match_datetime).toLocaleString(LOCALE_MAP[lang] || 'fr-FR', {
                   day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit',
                 })}
               </span>
@@ -378,7 +378,7 @@ export default function Admin() {
                     onClick={() => handleSubmit(match.id)}
                     disabled={saving[match.id] || s.home === '' || s.away === ''}
                     className="btn btn-primary text-sm px-4 py-1.5">
-                    {saving[match.id] ? '…' : 'Valider'}
+                    {saving[match.id] ? '…' : t('admin.btn.validate')}
                   </button>
                   {msg && (
                     <span className={`text-xs ${msg.isError ? 'text-red-400' : 'text-green-400'}`}>
@@ -387,7 +387,7 @@ export default function Admin() {
                   )}
                 </div>
               ) : (
-                <span className="text-sm font-semibold text-green-400 shrink-0">✓ Scoré</span>
+                <span className="text-sm font-semibold text-green-400 shrink-0">{t('admin.scored')}</span>
               )}
             </div>
           );
