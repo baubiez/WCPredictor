@@ -174,6 +174,12 @@ def extract_teams(matches: list[dict]) -> dict[str, dict]:
 def extract_matches(raw_matches: list[dict], team_id_map: dict[str, int]) -> list[dict]:
     """
     Retourne la liste des matchs à insérer/mettre à jour.
+
+    Règles de stockage du score :
+    - Tirs au but (p présent)  : home_score/away_score = ft (score au tableau, identique après TAB)
+    - Prolongations seules (et présent, pas p) : home_score/away_score = et (score final réel)
+    - Sinon                    : home_score/away_score = ft (résultat 90 min)
+    Le penalty_winner_id identifie l'équipe qualifiée quand le match est allé aux tirs au but.
     """
     result = []
     for m in raw_matches:
@@ -186,18 +192,36 @@ def extract_matches(raw_matches: list[dict], team_id_map: dict[str, int]) -> lis
 
         score = m.get("score", {})
         ft = score.get("ft")
-        status = "finished" if ft else "scheduled"
+        et = score.get("et")
+        p  = score.get("p")
+
+        # Score à stocker et à afficher :
+        # - Prolongations (avec ou sans TAB ensuite) : on prend et (score après 120 min)
+        # - Sinon : on prend ft (score à 90 min)
+        # C'est ce score qui fait foi pour noter les pronostics.
+        final = et if et else ft
+
+        status = "finished" if final else "scheduled"
+
+        # Vainqueur aux tirs au but
+        penalty_winner_id = None
+        if p and len(p) == 2:
+            if p[0] > p[1]:
+                penalty_winner_id = team_id_map[t1]   # équipe domicile qualifiée
+            elif p[1] > p[0]:
+                penalty_winner_id = team_id_map[t2]   # équipe extérieure qualifiée
 
         result.append({
-            "home_team_id":   team_id_map[t1],
-            "away_team_id":   team_id_map[t2],
-            "match_datetime": parse_datetime_utc(m.get("date", "2026-01-01"), m.get("time", "")),
-            "stage":          parse_stage(m.get("round", "")),
-            "group_letter":   parse_group(m.get("group", "")),
-            "stadium":        m.get("ground", ""),
-            "status":         status,
-            "home_score":     ft[0] if ft else None,
-            "away_score":     ft[1] if ft else None,
+            "home_team_id":      team_id_map[t1],
+            "away_team_id":      team_id_map[t2],
+            "match_datetime":    parse_datetime_utc(m.get("date", "2026-01-01"), m.get("time", "")),
+            "stage":             parse_stage(m.get("round", "")),
+            "group_letter":      parse_group(m.get("group", "")),
+            "stadium":           m.get("ground", ""),
+            "status":            status,
+            "home_score":        final[0] if final else None,
+            "away_score":        final[1] if final else None,
+            "penalty_winner_id": penalty_winner_id,
         })
     return result
 
@@ -256,8 +280,9 @@ def insert_matches(conn, matches: list[dict]) -> dict[tuple, int]:
                 """
                 INSERT INTO matches
                     (home_team_id, away_team_id, match_datetime,
-                     stage, group_letter, stadium, status, home_score, away_score)
-                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                     stage, group_letter, stadium, status,
+                     home_score, away_score, penalty_winner_id)
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
                 ON CONFLICT (home_team_id, away_team_id) DO UPDATE SET
                     match_datetime = EXCLUDED.match_datetime,
                     stage          = EXCLUDED.stage,
@@ -270,14 +295,15 @@ def insert_matches(conn, matches: list[dict]) -> dict[tuple, int]:
                                      ELSE EXCLUDED.status
                                  END,
                     -- Les scores de la source écrasent, sauf si admin les a déjà saisis
-                    home_score = COALESCE(EXCLUDED.home_score, matches.home_score),
-                    away_score = COALESCE(EXCLUDED.away_score, matches.away_score)
+                    home_score         = COALESCE(EXCLUDED.home_score,         matches.home_score),
+                    away_score         = COALESCE(EXCLUDED.away_score,         matches.away_score),
+                    penalty_winner_id  = COALESCE(EXCLUDED.penalty_winner_id,  matches.penalty_winner_id)
                 RETURNING id
                 """,
                 (
                     m["home_team_id"], m["away_team_id"], m["match_datetime"],
                     m["stage"], m["group_letter"], m["stadium"], m["status"],
-                    m["home_score"], m["away_score"],
+                    m["home_score"], m["away_score"], m["penalty_winner_id"],
                 ),
             )
             mid = cur.fetchone()[0]

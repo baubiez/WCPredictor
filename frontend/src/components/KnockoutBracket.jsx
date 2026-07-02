@@ -20,7 +20,7 @@ const STAGES = [
 ];
 
 /* ── single team row inside a match card ── */
-function TeamRow({ name, code, score, winner }) {
+function TeamRow({ name, code, score, winner, penWinner }) {
   const flag = code ? flagUrl(code) : null;
   return (
     <div style={{
@@ -44,11 +44,18 @@ function TeamRow({ name, code, score, winner }) {
         {name ?? '—'}
       </span>
       {score != null && (
-        <span style={{
-          fontSize: 13, fontWeight: 900, minWidth: 16, textAlign: 'right',
-          flexShrink: 0, color: winner ? '#22c55e' : 'var(--accent)',
-        }}>
-          {score}
+        <span style={{ display: 'flex', alignItems: 'baseline', gap: 2, flexShrink: 0 }}>
+          <span style={{
+            fontSize: 13, fontWeight: 900, minWidth: 16, textAlign: 'right',
+            color: winner ? '#22c55e' : 'var(--accent)',
+          }}>
+            {score}
+          </span>
+          {penWinner && (
+            <span style={{ fontSize: 8, fontWeight: 700, color: '#22c55e', opacity: 0.85 }}>
+              pen.
+            </span>
+          )}
         </span>
       )}
     </div>
@@ -57,9 +64,18 @@ function TeamRow({ name, code, score, winner }) {
 
 /* ── one match card ── */
 function MatchCard({ match, lang, tbd }) {
-  const finished = match?.status === 'finished';
-  const homeWin  = finished && match.home_score > match.away_score;
-  const awayWin  = finished && match.away_score > match.home_score;
+  const finished   = match?.status === 'finished';
+  const penWinner  = match?.penalty_winner_code ?? null;
+
+  // Vainqueur = meilleur score OU vainqueur aux tirs au but si égalité
+  const homeWin = finished && (
+    match.home_score > match.away_score ||
+    (penWinner && penWinner === match.home_team_code)
+  );
+  const awayWin = finished && (
+    match.away_score > match.home_score ||
+    (penWinner && penWinner === match.away_team_code)
+  );
 
   return (
     <div style={{
@@ -73,6 +89,7 @@ function MatchCard({ match, lang, tbd }) {
         code={match?.home_team_code ?? null}
         score={finished ? match.home_score : null}
         winner={homeWin}
+        penWinner={homeWin && !!penWinner}
       />
       <div style={{ height: 1, background: 'var(--border)' }} />
       <TeamRow
@@ -80,6 +97,7 @@ function MatchCard({ match, lang, tbd }) {
         code={match?.away_team_code ?? null}
         score={finished ? match.away_score : null}
         winner={awayWin}
+        penWinner={awayWin && !!penWinner}
       />
     </div>
   );

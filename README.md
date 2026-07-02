@@ -234,15 +234,18 @@ Tables principales (cf. [`db/init.sql`](db/init.sql)) :
 | `001` | Ajoute les colonnes xG à `bot_predictions` | ✅ nécessaire | ✅ nécessaire |
 | `002` | Crée le compte **Botnaru** (connexion désactivée) | ⬜ déjà dans seed.sql | ✅ nécessaire |
 | `003` | Donne à Botnaru un pronostic de démarrage (1 score exact → 3 pts) | ⬜ optionnel | ✅ nécessaire |
+| `004` | Ajoute `penalty_winner_id` dans `matches` (phases finales TAB) | ✅ nécessaire | ✅ nécessaire |
 
 ```bash
-# Setup local — uniquement la migration 001 est requise (voir Démarrage rapide)
+# Setup local — migrations 001 et 004 requises (voir Démarrage rapide)
 docker compose exec -T db sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"' < db/migrations/001_add_xg_to_bot_predictions.sql
+docker compose exec -T db sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"' < db/migrations/004_add_penalty_winner.sql
 
-# Render (base existante sans seed) — jouer les 3 dans l'ordre
+# Render (base existante sans seed) — jouer les 4 dans l'ordre
 docker compose exec -T db sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"' < db/migrations/001_add_xg_to_bot_predictions.sql
 docker compose exec -T db sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"' < db/migrations/002_botnaru_user.sql
 docker compose exec -T db sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"' < db/migrations/003_botnaru_test_score_exact.sql
+docker compose exec -T db sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"' < db/migrations/004_add_penalty_winner.sql
 ```
 
 ---

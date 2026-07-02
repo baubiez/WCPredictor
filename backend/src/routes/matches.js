@@ -30,10 +30,12 @@ router.get('/', async (req, res) => {
             `SELECT m.id, ht.name AS home_team, at.name AS away_team,
                     ht.code AS home_team_code, at.code AS away_team_code,
                     m.match_datetime, m.status, m.home_score, m.away_score,
-                    m.stage, m.group_letter
+                    m.stage, m.group_letter,
+                    pw.code AS penalty_winner_code
              FROM matches m
-             JOIN teams ht ON ht.id = m.home_team_id
-             JOIN teams at ON at.id = m.away_team_id
+             JOIN teams ht  ON ht.id = m.home_team_id
+             JOIN teams at  ON at.id = m.away_team_id
+             LEFT JOIN teams pw ON pw.id = m.penalty_winner_id
              ${where}
              ORDER BY ${sortCol} ${sortDir}`,
             params
