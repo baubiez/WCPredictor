@@ -10,6 +10,24 @@ if (!process.env.DATABASE_URL) {
     process.exit(1);
 }
 
-const app = require('./app');
+const pool = require('./db');
+const app  = require('./app');
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Serveur démarré sur http://localhost:${PORT}`));
+
+async function runMigrations() {
+    // Idempotent : IF NOT EXISTS garantit qu'aucune erreur n'est levée si la colonne existe déjà
+    await pool.query(`
+        ALTER TABLE matches
+        ADD COLUMN IF NOT EXISTS penalty_winner_id INT REFERENCES teams(id)
+    `);
+    console.log('Migration 004 : penalty_winner_id OK');
+}
+
+runMigrations()
+    .then(() => {
+        app.listen(PORT, () => console.log(`Serveur démarré sur http://localhost:${PORT}`));
+    })
+    .catch((err) => {
+        console.error('Échec des migrations au démarrage :', err.message);
+        process.exit(1);
+    });
